@@ -699,16 +699,20 @@ async function submitLead(){
   }
   const result=JSON.parse(localStorage.getItem("mapa_ia_result")||"{}");
   const lead={
-    event:"lead_submitted", ts:new Date().toISOString(), ...sourceData,
+    event:"lead_submitted",
+    lead_payload_version:1,
+    ts:new Date().toISOString(), ...sourceData,
     name,email,phone,consent:true,
     ...result
   };
-  track("lead_submitted",{name,email,phone,objective:result.data?.q13,blocker:result.data?.q14,budget_band:result.data?.q15,total_score:result.total,lead_priority:result.leadPriority});
+  // Envia o lead completo uma única vez para a aba Leads.
   if(CONFIG.WEBHOOK_URL){
     try{
       await fetch(CONFIG.WEBHOOK_URL,{method:"POST",body:new URLSearchParams({payload: JSON.stringify(lead)}),mode:"no-cors",keepalive:true});
     }catch(e){}
   }
+  // Registra o evento de captura separadamente, sem duplicar a linha na aba Leads.
+  track("lead_captured",{name,email,phone,objective:result.data?.q13,blocker:result.data?.q14,budget_band:result.data?.q15,total_score:result.total,lead_priority:result.leadPriority});
   document.getElementById("fullReport").classList.remove("hidden");
   document.getElementById("nextStepCard").classList.remove("hidden");
   const wa=document.getElementById("whatsappCta");
