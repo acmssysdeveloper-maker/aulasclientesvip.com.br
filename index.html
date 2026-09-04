@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Mapa IA 40+: auto-diagnóstico gratuito para entender seu momento tecnológico e descobrir próximos passos.">
+<title>Mapa IA 40+ | Seu ponto de partida tecnológico</title>
+<style>
+:root{
+  --navy:#071a33; --navy2:#0d2a4d; --gold:#d6a62b; --gold2:#f3c64e;
+  --cream:#f7f5ef; --ink:#112033; --muted:#657286; --line:#dfe4ea;
+  --white:#fff; --green:#1f9d67; --shadow:0 18px 50px rgba(7,26,51,.10);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f5f7fa;color:var(--ink);line-height:1.5}
+a{color:inherit}
+.container{width:min(1120px,92%);margin:0 auto}
+.topbar{background:var(--navy);color:#fff;padding:14px 0;font-size:13px}
+.topbar .container{display:flex;justify-content:space-between;gap:16px;align-items:center}
+.brand{font-weight:800;letter-spacing:.08em}
+.city{opacity:.82}
+.hero{background:
+ linear-gradient(100deg,rgba(7,26,51,.96) 0%,rgba(7,26,51,.91) 54%,rgba(7,26,51,.72) 100%),
+ radial-gradient(circle at 90% 20%,rgba(214,166,43,.28),transparent 28%);
+ color:#fff;padding:76px 0 62px;position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;right:-120px;bottom:-180px;width:480px;height:480px;border:1px solid rgba(243,198,78,.22);border-radius:50%;box-shadow:0 0 0 70px rgba(243,198,78,.03),0 0 0 140px rgba(243,198,78,.02)}
+.kicker{display:inline-flex;align-items:center;gap:8px;color:var(--gold2);font-weight:800;text-transform:uppercase;letter-spacing:.12em;font-size:13px;margin-bottom:18px}
+.hero h1{font-size:clamp(38px,6vw,72px);line-height:.98;max-width:850px;margin:0 0 22px;letter-spacing:-.04em}
+.hero h1 span{color:var(--gold2)}
+.hero p{font-size:clamp(18px,2.1vw,23px);max-width:770px;color:#e7edf5;margin:0 0 30px}
+.cta{display:inline-flex;align-items:center;justify-content:center;gap:10px;background:var(--gold2);color:var(--navy);text-decoration:none;border:none;padding:16px 24px;border-radius:12px;font-weight:900;font-size:16px;cursor:pointer;box-shadow:0 8px 28px rgba(243,198,78,.20)}
+.cta:hover{transform:translateY(-1px)}
+.micro{font-size:13px;color:#b8c4d2;margin-top:12px}
+.section{padding:56px 0}
+.grid2{display:grid;grid-template-columns:1.2fr .8fr;gap:30px;align-items:start}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:26px;box-shadow:var(--shadow)}
+.card h2{margin:0 0 10px;font-size:28px;letter-spacing:-.02em}
+.card p{color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:26px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px}
+.stat strong{display:block;font-size:31px;color:var(--navy);line-height:1}
+.stat span{display:block;font-size:13px;color:var(--muted);margin-top:9px}
+.source{font-size:11px;color:#7a8492;margin-top:8px}
+.source a{text-decoration:underline}
+.intro-list{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:20px}
+.pill{border:1px solid var(--line);background:#fbfcfd;border-radius:12px;padding:13px}
+.pill b{display:block;margin-bottom:4px}
+.quiz-wrap{background:linear-gradient(180deg,#071a33 0,#0b2342 100%);padding:30px 0 66px}
+.quiz-shell{background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.22)}
+.quiz-head{padding:22px 26px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:20px}
+.progress{height:8px;background:#e8edf2;border-radius:99px;overflow:hidden}
+.progress > div{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));width:0%;transition:width .3s}
+.step{padding:42px 34px 32px;display:none}
+.step.active{display:block}
+.step h3{font-size:31px;line-height:1.15;margin:0 0 10px;letter-spacing:-.02em}
+.step .hint{color:var(--muted);margin:0 0 22px}
+.options{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.option{border:1px solid var(--line);border-radius:14px;padding:16px;background:#fff;cursor:pointer;transition:.15s}
+.option:hover{border-color:#b8c3d0;background:#fbfcfd}
+.option.selected{border:2px solid var(--gold);background:#fffaf0}
+.option input{display:none}
+.opt-title{font-weight:800}
+.opt-desc{font-size:13px;color:var(--muted);margin-top:3px}
+.field{margin-top:16px}
+label{display:block;font-weight:750;margin-bottom:7px}
+input[type="text"],input[type="email"],input[type="tel"],textarea,select{
+ width:100%;padding:14px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;font:inherit;color:var(--ink);outline:none
+}
+textarea{min-height:120px;resize:vertical}
+input:focus,textarea:focus,select:focus{border-color:#9eacba;box-shadow:0 0 0 4px rgba(214,166,43,.10)}
+.nav{display:flex;justify-content:space-between;gap:12px;margin-top:24px}
+.btn-secondary{background:#eef2f6;color:var(--navy);border:0;border-radius:12px;padding:13px 18px;font-weight:800;cursor:pointer}
+.btn-primary{background:var(--navy);color:#fff;border:0;border-radius:12px;padding:13px 18px;font-weight:850;cursor:pointer}
+.error{color:#a52a2a;font-size:13px;margin-top:10px;display:none}
+.result{display:none}
+.result.active{display:block}
+.result-hero{background:linear-gradient(135deg,var(--navy),#123a67);color:#fff;padding:34px}
+.result-hero h2{font-size:38px;line-height:1.05;margin:5px 0 8px}
+.result-hero p{color:#dbe6f3;max-width:760px;margin:0}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;padding:26px}
+.meter{margin:13px 0}
+.meter-row{display:flex;justify-content:space-between;font-size:14px;font-weight:800}
+.bar{height:10px;background:#e8edf2;border-radius:99px;overflow:hidden;margin-top:7px}
+.bar > div{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.map{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mapbox{border:1px solid var(--line);border-radius:15px;padding:18px}
+.mapbox .label{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:850}
+.mapbox strong{font-size:20px;display:block;margin-top:5px}
+.lead{background:#fffaf0;border:1px solid #f0d98a}
+.lead h3{margin:0 0 8px}
+.small{font-size:12px;color:var(--muted)}
+.footer{padding:30px 0 50px;text-align:center;font-size:12px;color:#758092}
+.notice{padding:14px 16px;border-radius:12px;background:#f2f7fb;border:1px solid #d9e5ef;color:#38506a;font-size:13px}
+.callout{border-left:4px solid var(--gold);padding:10px 14px;background:#fbfaf6}
+.result-copy{font-size:15px}
+.hidden{display:none!important}
+@media(max-width:900px){
+ .grid2{grid-template-columns:1fr}
+ .stats{grid-template-columns:1fr 1fr}
+ .result-grid{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+ .topbar .container{flex-direction:column;align-items:flex-start}
+ .hero{padding:54px 0 48px}
+ .options,.intro-list,.map{grid-template-columns:1fr}
+ .step{padding:28px 18px}
+ .quiz-head{padding:18px}
+ .result-hero{padding:26px 20px}
+ .result-grid{padding:20px}
+ .stats{grid-template-columns:1fr 1fr}
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+</head>
+<body>
+<div class="topbar">
+  <div class="container">
+    <div class="brand">MAPA IA 40+</div>
+    <div class="city">Saquarema · diagnóstico gratuito</div>
+  </div>
+</div>
+
+<section class="hero">
+  <div class="container">
+    <div class="kicker">Não é uma prova de IA</div>
+    <h1>Onde você está hoje — e <span>o que pode começar a desenvolver.</span></h1>
+    <p>Um auto-diagnóstico rápido para entender como sua experiência, sua capacidade de aprender e seu uso de tecnologia estão preparados para o mundo atual.</p>
+    <a class="cta" href="#diagnostico" onclick="track('cta_hero')">Começar meu mapa →</a>
+    <div class="micro">Leva poucos minutos. Você recebe seu mapa na própria página.</div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="grid2">
+      <div class="card">
+        <div class="kicker" style="color:#9a7311">Por que este diagnóstico existe?</div>
+        <h2>A questão não é “saber IA”. É continuar capaz de aprender e aplicar.</h2>
+        <p>O trabalho, os negócios e a vida cotidiana estão incorporando novas ferramentas. Isso não significa que experiência perdeu valor; significa que experiência e tecnologia precisam caminhar juntas.</p>
+        <div class="callout"><b>Você não precisa aprender tudo.</b><br>Precisa descobrir o que faz sentido para o seu momento e qual pode ser o próximo passo.</div>
+        <div class="intro-list">
+          <div class="pill"><b>Trabalho</b>Produtividade, atualização e novas exigências.</div>
+          <div class="pill"><b>Recolocação</b>Novas competências para demonstrar valor.</div>
+          <div class="pill"><b>Negócio</b>Ferramentas para criar, organizar e automatizar.</div>
+          <div class="pill"><b>Vida pessoal</b>Curiosidade, autonomia e participação no mundo tecnológico.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="kicker" style="color:#9a7311">O cenário atual</div>
+        <h2>Alguns sinais que já não são futuros.</h2>
+        <p>Os números não dizem quem será bem-sucedido. Eles mostram por que aprender continuamente passou a ser uma competência relevante.</p>
+        <div class="notice">
+          <b>32%</b> dos usuários de internet no Brasil declararam ter usado IA generativa na TIC Domicílios 2025 — cerca de 50 milhões de pessoas.
+          <div class="source">Fonte: Cetic.br / CGI.br, TIC Domicílios 2025. <a href="https://cetic.br/pt/noticia/50-milhoes-de-brasileiros-ja-usam-ia-mas-potenciais-beneficios-continuam-limitados-as-camadas-de-maior-renda-e-escolaridade/" target="_blank" rel="noopener">Ver fonte</a></div>
+        </div>
+        <div class="notice" style="margin-top:12px">
+          Empresas brasileiras que usam IA: <b>17% em 2025</b>, contra 13% em 2024; entre grandes empresas, o indicador chegou a <b>50%</b>.
+          <div class="source">Fonte: Cetic.br, TIC Empresas 2025. <a href="https://www.cetic.br/pt/noticia/uso-de-inteligencia-artificial-por-empresas-brasileiras-avanca-e-atinge-17-aponta-pesquisa-do-cetic-br/" target="_blank" rel="noopener">Ver fonte</a></div>
+        </div>
+        <div class="notice" style="margin-top:12px">
+          No estudo global da PwC de 2026, as competências exigidas nas funções mais expostas à IA estão mudando <b>mais de duas vezes mais rápido</b> que nas menos expostas.
+          <div class="source">Fonte: PwC, AI Jobs Barometer 2026. <a href="https://www.pwc.com/gx/en/1/services/ai/ai-jobs-barometer.html" target="_blank" rel="noopener">Ver fonte</a></div>
+        </div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><strong>32%</strong><span>usuários de internet no Brasil usando IA generativa</span></div>
+      <div class="stat"><strong>17%</strong><span>empresas brasileiras que usaram IA em 2025</span></div>
+      <div class="stat"><strong>50%</strong><span>adoção de IA entre grandes empresas brasileiras em 2025</span></div>
+      <div class="stat"><strong>2×+</strong><span>ritmo de mudança das competências nas funções mais expostas à IA</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="quiz-wrap" id="diagnostico">
+  <div class="container">
+    <div class="quiz-shell" id="quizShell">
+      <div class="quiz-head">
+        <div style="min-width:180px"><b id="stepLabel">Etapa 1 de 4</b><div class="small" id="stepTopic">Seu contexto</div></div>
+        <div style="flex:1;max-width:650px"><div class="progress"><div id="progressBar"></div></div></div>
+      </div>
+
+      <form id="quizForm" novalidate>
+        <!-- 1 -->
+        <div class="step active" data-step="0">
+          <h3>Antes de começar: em qual faixa você está?</h3>
+          <p class="hint">Essa informação é apenas para contextualizar seu mapa. Não muda sua pontuação.</p>
+          <div class="options">
+            <label class="option"><input type="radio" name="age" value="40-49"><div class="opt-title">40 a 49 anos</div><div class="opt-desc">Quero me atualizar e avançar.</div></label>
+            <label class="option"><input type="radio" name="age" value="50-59"><div class="opt-title">50 a 59 anos</div><div class="opt-desc">Quero continuar competitivo e atualizado.</div></label>
+            <label class="option"><input type="radio" name="age" value="60+"><div class="opt-title">60 anos ou mais</div><div class="opt-desc">Quero acompanhar e explorar novas possibilidades.</div></label>
+            <label class="option"><input type="radio" name="age" value="under40"><div class="opt-title">Tenho menos de 40</div><div class="opt-desc">Quero fazer o diagnóstico mesmo assim.</div></label>
+          </div>
+          <div class="nav"><span></span><button type="button" class="btn-primary" onclick="nextStep()">Continuar →</button></div>
+          <div class="error" id="e0">Escolha uma opção para continuar.</div>
+        </div>
+
+        <!-- 2-4 -->
+        <div class="step" data-step="1">
+          <h3>Quando uma tecnologia nova aparece, qual costuma ser sua reação?</h3>
+          <p class="hint">Pense em situações reais, não no que você gostaria de fazer.</p>
+          <div class="options">
+            <label class="option"><input type="radio" name="q2" value="1" data-dim="learn"><div class="opt-title">Evito</div><div class="opt-desc">Prefiro não mexer até alguém me ensinar.</div></label>
+            <label class="option"><input type="radio" name="q2" value="2" data-dim="learn"><div class="opt-title">Tento, mas travo</div><div class="opt-desc">Quando fica difícil, normalmente paro.</div></label>
+            <label class="option"><input type="radio" name="q2" value="3" data-dim="learn"><div class="opt-title">Aprendo com ajuda</div><div class="opt-desc">Com orientação, consigo avançar.</div></label>
+            <label class="option"><input type="radio" name="q2" value="4" data-dim="learn"><div class="opt-title">Exploro</div><div class="opt-desc">Pesquiso, testo e descubro sozinho.</div></label>
+          </div>
+          <div class="nav"><button type="button" class="btn-secondary" onclick="prevStep()">← Voltar</button><button type="button" class="btn-primary" onclick="nextStep()">Continuar →</button></div>
+          <div class="error" id="e1">Escolha uma opção para continuar.</div>
+        </div>
+
+        <div class="step" data-step="2">
+          <h3>Hoje, quanto você consegue usar tecnologia para resolver algo sozinho?</h3>
+          <p class="hint">Não estamos falando de saber tudo; estamos falando de conseguir chegar a uma solução.</p>
+          <div class="options">
+            <label class="option"><input type="radio" name="q3" value="1" data-dim="digital"><div class="opt-title">Quase nada</div><div class="opt-desc">Normalmente dependo de outra pessoa.</div></label>
+            <label class="option"><input type="radio" name="q3" value="2" data-dim="digital"><div class="opt-title">Básico</div><div class="opt-desc">Consigo executar tarefas conhecidas.</div></label>
+            <label class="option"><input type="radio" name="q3" value="3" data-dim="digital"><div class="opt-title">Intermediário</div><div class="opt-desc">Consigo pesquisar e resolver várias situações.</div></label>
+            <label class="option"><input type="radio" name="q3" value="4" data-dim="digital"><div class="opt-title">Autônomo</div><div class="opt-desc">Costumo encontrar o caminho sozinho.</div></label>
+          </div>
+          <div class="nav"><button type="button" class="btn-secondary" onclick="prevStep()">← Voltar</button><button type="button" class="btn-primary" onclick="nextStep()">Continuar →</button></div>
+          <div class="error" id="e2">Escolha uma opção para continuar.</div>
+        </div>
+
+        <div class="step" data-step="3">
+          <h3>Qual destas frases mais se aproxima de você hoje?</h3>
+          <p class="hint">Escolha a que mais descreve sua realidade atual.</p>
+          <div class="options">
+            <label class="option"><input type="radio" name="q4" value="1" data-dim="future"><div class="opt-title">“Estou ficando para trás.”</div><div class="opt-desc">Sinto que a tecnologia está avançando mais rápido do que eu.</div></label>
+            <label class="option"><input type="radio" name="q4" value="2" data-dim="future"><div class="opt-title">“Quero acompanhar.”</div><div class="opt-desc">Não quero depender dos outros para entender as mudanças.</div></label>
+            <label class="option"><input type="radio" name="q4" value="3" data-dim="future"><div class="opt-title">“Quero usar melhor.”</div><div class="opt-desc">Já uso tecnologia, mas quero transformar isso em resultado.</div></label>
+            <label class="option"><input type="radio" name="q4" value="4" data-dim="future"><div class="opt-title">“Quero criar.”</div><div class="opt-desc">Quero experimentar, construir e ir além do uso básico.</div></label>
+          </div>
+          <div class="nav"><button type="button" class="btn-secondary" onclick="prevStep()">← Voltar</button><button type="button" class="btn-primary" onclick="nextStep()">Continuar →</button></div>
+          <div class="error" id="e3">Escolha uma opção para continuar.</div>
+        </div>
+
+        <div class="step" data-step="4">
+          <h3>Você já usa alguma IA no seu dia a dia?</h3>
+          <p class="hint">Vale ChatGPT, Gemini, Copilot, Claude ou outras ferramentas.</p>
+          <div class="options">
+            <label class="option"><input type="radio" name="q5" value="1" data-dim="ai"><div class="opt-title">Nunca</div><div class="opt-desc">Ainda não usei de forma prática.</div></label>
+            <label class="option"><input type="radio" name="q5" value="2" data-dim="ai"><div class="opt-title">Já experimentei</div><div class="opt-desc">Usei algumas vezes por curiosidade.</div></label>
+            <label class="option"><input type="radio" name="q5" value="3" data-dim="ai"><div class="opt-title">Uso às vezes</div><div class="opt-desc">Já encontrei algumas aplicações úteis.</div></label>
+            <label class="option"><input type="radio" name="q5" value="4" data-dim="ai"><div class="opt-title">Uso com frequência</div><div class="opt-desc">Já faz parte da minha rotina.</div></label>
+          </div>
+          <div class="nav"><button type="button" class="btn-secondary" onclick="prevStep()">← Voltar</button><button type="button" class="btn-primary" onclick="nextStep()">Continuar →</button></div>
+          <div class="error" id="e4">Escolha uma opção para continuar.</div>
+        </div>
+
+        <div class="step" data-step="5">
+          <h3>Quanto da sua rotina poderia ser melhorado com tecnologia, mas ainda não é?</h3>
+          <p class="hint">Pense em tarefas repetitivas, documentos, pesquisa, comunicação, organização ou decisões.</p>
+          <div class="options">
+            <label class="option"><input type="radio" name="q6" value="1" data-dim="productivity"><div class="opt-title">Quase nada</div><div class="opt-desc">Não vejo muita oportunidade agora.</div></label>
+            <label class="option"><input type="radio" name="q6" value="2" data-dim="productivity"><div class="opt-title">Algumas coisas</div><div class="opt-desc">Tenho tarefas que poderiam ser mais simples.</div></label>
+            <label class="option"><input type="radio" name="q6" value="3" data-dim="productivity"><div class="opt-title">Bastante coisa</div><div class="opt-desc">Vejo várias oportunidades, mas não sei por onde começar.</div></label>
+            <label class="option"><input type="radio" name="q6" value="4" data-dim="productivity"><div class="opt-title">Muita coisa</div><div class="opt-desc">Quero transformar minha rotina com automação e IA.</div></label>
+          </div>
+          <div class="nav"><button type="button" class="btn-secondary" onclick="prevStep()">← Voltar</button><button type="button" class="btn-primary" onclick="nextStep()">Continuar →</button></div>
+          <div class="error" id="e5">Escolha uma opção para continuar.</div>
+        </div>
+
+        <div class="step" data-step="6">
+          <h3>Quando você precisa aprender algo novo, como costuma fazer?</h3>
+          <p class="hint">Isso ajuda a medir sua autonomia de aprendizagem, não sua formação.</p>
+          <div class="options">
+            <label class="option"><input type="radio" name="q7" value="1" data-dim="learn"><div class="opt-title">Espero alguém ensinar</div><div class="opt-desc">Tenho dificuldade de começar sozinho.</div></label>
+            <label class="option"><input type="radio" name="q7" value="2" data-dim="learn"><div class="opt-title">Procuro cursos</div><div class="opt-desc">Começo bem, mas nem sempre concluo.</div></label>
+            <label class="option"><input type="radio" name="q7" value="3" data-dim="learn"><div class="opt-title">Pesquiso e pratico</div><div class="opt-desc">Aprendo melhor fazendo.</div></label>
+            <label class="option"><input type="radio" name="q7" value="4" data-dim="learn"><div class="opt-title">Experimento</div><div class="opt-desc">Costumo aprender testando e corrigindo.</div></label>
+          </div>
+          <div class="nav"><button type="button" class="btn-secondary" onclick="prevStep()">← Voltar</button><button type="button" class="btn-primary" onclick="nextStep()">Continuar →</button></div>
+          <div class="error" id="e6">Escolha uma opção para continuar.</div>
+        </div>
+
+        <div class="step" data-step="7">
+          <h3>Você já tentou aprender online e acabou desistindo?</h3>
+          <p class="hint">Responda com sinceridade; isso não reduz sua pontuação.</p>
+          <div class="options">
+            <label class="option"><input type="radio" name="q8" value="4" data-dim="learn"><div class="opt-title">Não</div><div class="opt-desc">Consigo aprender bem nesse formato.</div></label>
+            <label class="option"><input type="radio" name="q8" value="3" data-dim="learn"><div class="opt-title">Raramente</div><div class="opt-desc">Já aconteceu, mas continuo estudando.</div></label>
+            <label class="option"><input type="radio" name="q8" value="2" data-dim="learn"><div class="opt-title">Algumas vezes</div><div class="opt-desc">Sinto falta de alguém para orientar.</div></label>
+            <label class="option"><input type="radio" name="q8" value="1" data-dim="learn"><div class="opt-title">Várias vezes</div><div class="opt-desc">O conteúdo sozinho não tem funcionado para mim.</div></label>
+          </div>
+          <div class="nav"><button type="button" class="btn-secondary" onclick="prevStep()">← Voltar</button><button type="button" class="btn-primary" onclick="nextStep()">Continuar →</button></div>
+          <div class="error" id="e7">Escolha uma opção para continuar.</div>
+        </div>
+
+        <div class="step" data-step="8">
+          <h3>Imagine que você aprendesse a usar IA com segurança e autonomia: o que faria primeiro?</h3>
+          <p class="hint">Escolha a possibilidade que mais desperta seu interesse.</p>
+          <div class="options">
+            <label class="option"><input type="radio" name="q9" value="2" data-dim="create"><div class="opt-title">Melhoraria minha rotina</div><div class="opt-desc">Produtividade, organização e tarefas.</div></label>
+            <label class="option"><input type="radio" name="q9" value="3" data-dim="create"><div class="opt-title">Melhoraria meu trabalho/negócio</div><div class="opt-desc">Aplicação direta em resultados.</div></label>
+            <label class="option"><input type="radio" name="q9" value="3" data-dim="create"><div class="opt-title">Criaria coisas</div><div class="opt-desc">Imagens, conteúdo, ferramentas e aplicações.</div></label>
+            <label class="option"><input type="radio" name="q9" value="4" data-dim="create"><div class="opt-title">Aprenderia a construir</div><div class="opt-desc">Automação, sistemas e programação.</div></label>
+          </div>
+          <div class="nav"><button type="button" class="btn-secondary" onclick="prevStep()">← Voltar</button><button type="button" class="btn-primary" onclick="nextStep()">Continuar →</button></div>
+          <div class="error" id="e8">Escolha uma opção para continuar.</div>
+        </div>
+
+        <div class="step" data-step="9">
+          <h3>Quão preparado você se sente para mostrar seu valor em um mercado de trabalho mais tecnológico?</h3>
+          <p class="hint">Mesmo que você esteja empregado, pense na sua capacidade de acompanhar uma nova exigência profissional.</p>
+          <div class="options">
+            <label class="option"><input type="radio" name="q10" value="1" data-dim="career"><div class="opt-title">Pouco preparado</div><div class="opt-desc">Tenho receio de não acompanhar.</div></label>
+            <label class="option"><input type="radio" name="q10" value="2" data-dim="career"><div class="opt-title">Tenho alguma base</div><div class="opt-desc">Mas sinto lacunas importantes.</div></label>
+            <label class="option"><input type="radio" name="q10" value="3" data-dim="career"><div class="opt-title">Estou razoavelmente preparado</div><div class="opt-desc">Preciso atualizar algumas competências.</div></label>
+            <label class="option"><input type="radio" name="q10" value="4" data-dim="career"><div class="opt-title">Estou me preparando</div><div class="opt-desc">Quero transformar isso em uma vantagem.</div></label>
+          </div>
+          <div class="nav"><button type="button" class="btn-secondary" onclick="prevStep()">← Voltar</button><button type="button" class="btn-primary" onclick="nextStep()">Continuar →</button></div>
+          <div class="error" id="e9">Escolha uma opção para continuar.</div>
+        </div>
+
+        <div class="step" data-step="10">
+          <h3>O quanto você gostaria de desenvolver pensamento computacional?</h3>
+          <p class="hint">Pensamento computacional é aprender a decompor problemas, testar soluções e pensar de forma estruturada.</p>
+          <div class="options">
+            <label class="option"><input type="radio" name="q11" value="1" data-dim="computational"><div class="opt-title">Pouco interesse</div><div class="opt-desc">Meu foco é só acompanhar o básico.</div></label>
+            <label class="option"><input type="radio" name="q11" value="2" data-dim="computational"><div class="opt-title">Algum interesse</div><div class="opt-desc">Quero entender melhor como funciona.</div></label>
+            <label class="option"><input type="radio" name="q11" value="3" data-dim="computational"><div class="opt-title">Tenho bastante interesse</div><div class="opt-desc">Quero resolver problemas de forma mais estruturada.</div></label>
+            <label class="option"><input type="radio" name="q11" value="4" data-dim="computational"><div class="opt-title">Quero ir além</div><div class="opt-desc">Tenho interesse em automação, apps e programação.</div></label>
+          </div>
+          <div class="nav"><button type="button" class="btn-secondary" onclick="prevStep()">← Voltar</button><button type="button" class="btn-primary" onclick="nextStep()">Continuar →</button></div>
+          <div class="error" id="e10">Escolha uma opção para continuar.</div>
+        </div>
+
+        <div class="step" data-step="11">
+          <h3>Se nada mudasse na sua forma de aprender tecnologia nos próximos 12 meses, como você se sentiria?</h3>
+          <p class="hint">Aqui medimos sua intenção de mudança, não sua competência atual.</p>
+          <div class="options">
+            <label class="option"><input type="radio" name="q12" value="1" data-dim="intent"><div class="opt-title">Tranquilo</div><div class="opt-desc">Não vejo necessidade imediata.</div></label>
+            <label class="option"><input type="radio" name="q12" value="2" data-dim="intent"><div class="opt-title">Um pouco incomodado</div><div class="opt-desc">Sei que poderia avançar.</div></label>
+            <label class="option"><input type="radio" name="q12" value="3" data-dim="intent"><div class="opt-title">Incomodado</div><div class="opt-desc">Quero começar, mas preciso de direção.</div></label>
+            <label class="option"><input type="radio" name="q12" value="4" data-dim="intent"><div class="opt-title">Não quero esperar</div><div class="opt-desc">Quero iniciar uma evolução agora.</div></label>
+          </div>
+          <div class="nav"><button type="button" class="btn-secondary" onclick="prevStep()">← Voltar</button><button type="button" class="btn-primary" onclick="nextStep()">Continuar →</button></div>
+          <div class="error" id="e11">Escolha uma opção para continuar.</div>
+        </div>
+
+        <div class="step" data-step="12">
+          <h3>Qual transformação seria mais valiosa para você hoje?</h3>
+          <p class="hint">Escolha uma.</p>
+          <div class="options">
+            <label class="option"><input type="radio" name="q13" value="prod"><div class="opt-title">Trabalhar melhor</div><div class="opt-desc">Ganhar produtividade e confiança.</div></label>
+            <label class="option"><input type="radio" name="q13" value="recoloc"><div class="opt-title">Buscar recolocação</div><div class="opt-desc">Atualizar competências e oportunidades.</div></label>
+            <label class="option"><input type="radio" name="q13" value="negocio"><div class="opt-title">Melhorar meu negócio</div><div class="opt-desc">Aplicar tecnologia diretamente.</div></label>
+            <label class="option"><input type="radio" name="q13" value="pessoal"><div class="opt-title">Atualizar-me para a vida</div><div class="opt-desc">Não quero ficar fora do avanço tecnológico.</div></label>
+            <label class="option"><input type="radio" name="q13" value="carreira"><div class="opt-title">Explorar uma nova carreira</div><div class="opt-desc">Quero descobrir novas possibilidades.</div></label>
+            <label class="option"><input type="radio" name="q13" value="descobrir"><div class="opt-title">Ainda não sei</div><div class="opt-desc">Quero descobrir o que faz sentido para mim.</div></label>
+          </div>
+          <div class="nav"><button type="button" class="btn-secondary" onclick="prevStep()">← Voltar</button><button type="button" class="btn-primary" onclick="nextStep()">Continuar →</button></div>
+          <div class="error" id="e12">Escolha uma opção para continuar.</div>
+        </div>
+
+        <div class="step" data-step="13">
+          <h3>O que mais tem impedido você de avançar?</h3>
+          <p class="hint">Escolha o principal obstáculo. A pergunta aberta abaixo serve apenas para <b>detalhar sua escolha</b>; ela não substitui sua resposta.</p>
+          <div class="options">
+            <label class="option"><input type="radio" name="q14" value="nao_sei"><div class="opt-title">Não sei por onde começar</div><div class="opt-desc">Tenho interesse, mas falta direção.</div></label>
+            <label class="option"><input type="radio" name="q14" value="tempo"><div class="opt-title">Falta de tempo</div><div class="opt-desc">Minha rotina dificulta manter um estudo.</div></label>
+            <label class="option"><input type="radio" name="q14" value="curso"><div class="opt-title">Já fiz cursos, mas não consegui aplicar</div><div class="opt-desc">Aprendi conteúdo, mas não transformei em prática.</div></label>
+            <label class="option"><input type="radio" name="q14" value="medo"><div class="opt-title">Medo de não conseguir</div><div class="opt-desc">Tenho receio de travar ou não acompanhar.</div></label>
+            <label class="option"><input type="radio" name="q14" value="excesso"><div class="opt-title">Ferramentas demais e pouca direção</div><div class="opt-desc">Não sei o que vale a pena aprender primeiro.</div></label>
+            <label class="option"><input type="radio" name="q14" value="financeiro"><div class="opt-title">Questão financeira</div><div class="opt-desc">Hoje, investir em uma capacitação é um desafio.</div></label>
+          </div>
+          <div class="field">
+            <label for="q14text">Quer explicar melhor? (opcional)</label>
+            <textarea id="q14text" name="q14text" placeholder="Conte, se quiser, o que está por trás dessa escolha..."></textarea>
+          </div>
+          <div class="nav"><button type="button" class="btn-secondary" onclick="prevStep()">← Voltar</button><button type="button" class="btn-primary" onclick="nextStep()">Última pergunta →</button></div>
+          <div class="error" id="e13">Escolha uma opção para continuar.</div>
+        </div>
+
+        <div class="step" data-step="14">
+          <h3>Se você decidir investir em seu desenvolvimento tecnológico, qual faixa faria sentido para você?</h3>
+          <p class="hint">Não estamos perguntando sua renda. Queremos entender qual nível de investimento em acompanhamento individual seria viável ou aceitável para você neste momento.</p>
+          <div class="options">
+            <label class="option"><input type="radio" name="q15" value="ate50"><div class="opt-title">Até R$ 50 por encontro</div><div class="opt-desc">Preciso começar com um investimento bem baixo.</div></label>
+            <label class="option"><input type="radio" name="q15" value="51_100"><div class="opt-title">R$ 51 a R$ 100 por encontro</div><div class="opt-desc">Quero investir, mas preciso controlar o valor.</div></label>
+            <label class="option"><input type="radio" name="q15" value="101_150"><div class="opt-title">R$ 101 a R$ 150 por encontro</div><div class="opt-desc">Uma faixa que considero possível.</div></label>
+            <label class="option"><input type="radio" name="q15" value="151_200"><div class="opt-title">R$ 151 a R$ 200 por encontro</div><div class="opt-desc">Aceito investir mais por um acompanhamento individual.</div></label>
+            <label class="option"><input type="radio" name="q15" value="201_300"><div class="opt-title">R$ 201 a R$ 300 por encontro</div><div class="opt-desc">Vejo valor em uma orientação mais próxima.</div></label>
+            <label class="option"><input type="radio" name="q15" value="301_plus"><div class="opt-title">Acima de R$ 300 por encontro</div><div class="opt-desc">Estou disposto a investir mais em desenvolvimento.</div></label>
+            <label class="option"><input type="radio" name="q15" value="nao_agora"><div class="opt-title">No momento, não pretendo investir</div><div class="opt-desc">Quero acompanhar e entender primeiro.</div></label>
+          </div>
+          <div class="nav"><button type="button" class="btn-secondary" onclick="prevStep()">← Voltar</button><button type="button" class="btn-primary" onclick="finishQuiz()">Ver meu mapa →</button></div>
+          <div class="error" id="e14">Escolha uma opção para continuar.</div>
+        </div>
+</form>
+
+      <div class="result" id="result">
+        <div class="result-hero">
+          <div class="kicker">Seu resultado</div>
+          <h2 id="resultTitle">Seu mapa está pronto.</h2>
+          <p id="resultSummary"></p>
+        </div>
+
+        <div class="result-grid">
+          <div class="hidden" id="fullReport" style="display:contents">
+          <div class="card">
+            <h3 style="margin-top:0">Onde você está</h3>
+            <p class="result-copy" id="whereText"></p>
+            <div id="meters"></div>
+          </div>
+
+          <div class="card">
+            <h3 style="margin-top:0">Onde você pode chegar</h3>
+            <div class="map">
+              <div class="mapbox"><div class="label">Hoje</div><strong id="todayLevel"></strong><div class="small" id="todayDesc"></div></div>
+              <div class="mapbox"><div class="label">Próximo estágio</div><strong id="nextLevel"></strong><div class="small" id="nextDesc"></div></div>
+              <div class="mapbox" style="grid-column:1/-1"><div class="label">Possibilidades</div><strong id="futureLevel"></strong><div class="small" id="futureDesc"></div></div>
+            </div>
+            <div class="callout" style="margin-top:16px"><b>Seu maior espaço de desenvolvimento:</b><br><span id="growthArea"></span></div>
+          </div>
+
+          <div class="card">
+            <h3 style="margin-top:0">O que é mais valioso para você</h3>
+            <p class="result-copy" id="goalQuote"></p>
+            <h3>Seu principal obstáculo hoje</h3>
+            <p class="result-copy" id="blockerText"></p>
+          </div>
+
+          </div>
+          <div class="card">
+            <div class="kicker" style="color:#9a7311">Prévia do seu mapa</div>
+            <h3 style="margin-top:0">Seu diagnóstico foi calculado.</h3>
+            <p class="result-copy">Você já pode ver seu perfil geral. Para liberar o mapa completo, com as dimensões, seu principal espaço de desenvolvimento e o relatório em PDF, preencha seus dados abaixo.</p>
+            <div class="notice"><b>Seus dados não são usados para alterar sua pontuação.</b> Eles servem para entregar o relatório e, se você autorizar, entrar em contato sobre as aulas.</div>
+          </div>
+          <div class="card lead">
+            <h3>Quer receber seu mapa completo e o próximo passo?</h3>
+            <p class="small">Agora, para liberar seu relatório personalizado e permitir que eu entenda seu momento, preencha seus dados. Eles serão usados apenas para contato relacionado a este diagnóstico.</p>
+            <div class="field"><label for="name">Nome</label><input id="name" type="text" autocomplete="name" placeholder="Seu nome"></div>
+            <div class="field"><label for="email">E-mail</label><input id="email" type="email" autocomplete="email" placeholder="voce@exemplo.com"></div>
+            <div class="field"><label for="phone">WhatsApp</label><input id="phone" type="tel" autocomplete="tel" placeholder="(22) 99999-9999"></div>
+            <div class="field"><label><input id="consent" type="checkbox" style="width:auto;margin-right:7px"> Autorizo contato sobre o diagnóstico e as aulas.</label></div>
+            <button class="cta" type="button" style="width:100%;margin-top:12px" onclick="submitLead()">Receber meu relatório completo →</button>
+            <div class="error" id="leadError"></div>
+            <div class="small" style="margin-top:10px">Você não precisa comprar nada para fazer o diagnóstico.</div>
+          </div>
+
+          <div class="card hidden" id="nextStepCard">
+            <div class="kicker" style="color:#9a7311">Seu próximo passo</div>
+            <h3 style="margin-top:0">Agora transforme o mapa em prática.</h3>
+            <p class="result-copy">As aulas são <b>individuais, 100% remotas, duas vezes por semana, 90 minutos por encontro</b>, diretamente comigo e construídas em quatro mãos. Você não precisa acompanhar uma turma nem ficar sozinho diante de uma sequência de videoaulas.</p>
+            <div class="intro-list">
+              <div class="pill"><b>Atenção total</b>O foco é somente em você e no seu objetivo.</div>
+              <div class="pill"><b>Na prática</b>Você aprende fazendo e corrigindo junto comigo.</div>
+              <div class="pill"><b>No seu nível</b>Começamos exatamente de onde você está.</div>
+              <div class="pill"><b>Do básico ao avançado</b>IA, automação, criação, apps e, para quem quiser, Python.</div>
+            </div>
+            <div class="notice" style="margin-top:16px"><b>Seu mapa foi calculado a partir das suas respostas.</b> Ele é um instrumento de orientação e autoconhecimento, não uma promessa de emprego ou de resultado profissional.</div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:18px">
+              <button class="cta" type="button" onclick="downloadPDF()">Baixar meu mapa em PDF ↓</button>
+              <a id="whatsappCta" class="btn-secondary hidden" href="#" target="_blank" rel="noopener">Quero conversar sobre minha primeira aula ↗</a>
+            </div>
+            <div class="small" style="margin-top:10px">O botão de WhatsApp aparece quando você configurar o seu link no código.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <b>MAPA IA 40+</b> · Auto-diagnóstico de prontidão tecnológica · Saquarema, RJ<br>
+    Dados e fontes apresentados na página: Cetic.br/CGI.br, WEF e PwC. O diagnóstico é uma ferramenta de reflexão e orientação, não uma avaliação profissional ou promessa de emprego.
+  </div>
+</footer>
+
+<script>
+/* =========================
+   CONFIGURAÇÃO
+   =========================
+   1) WEBHOOK_URL:
+      coloque aqui a URL de um endpoint seu (ex.: Google Apps Script, Make, n8n etc.)
+      para receber eventos e leads automaticamente.
+   2) WHATSAPP_URL:
+      deixe vazio por enquanto; quando quiser ativar um botão de WhatsApp no resultado,
+      coloque aqui o link wa.me oficial que você fornecer.
+*/
+const CONFIG = {
+  // Cole aqui a URL /exec do seu Google Apps Script depois de publicar a implantação web.
+  WEBHOOK_URL: "https://script.google.com/macros/s/AKfycbwsgmYbOxSz_i3QQCPwDBe1tsN8YPvZEuTcH8PuTSdYtfvvwJfCR-qR8AOGf0-lmf6jOw/exec",
+  // Cole aqui, quando quiser, o link oficial do seu WhatsApp, por exemplo: https://wa.me/55XXXXXXXXXXX
+  // O telefone não aparece em lugar nenhum enquanto este campo estiver vazio.
+  WHATSAPP_URL: "",
+  BRAND: "Mapa IA 40+",
+  REMOTE_CLASS_TEXT: "Aulas individuais, 2 vezes por semana, 90 minutos, 100% remotas, construídas em quatro mãos."
+};
+
+const sessionId = (crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + Math.random();
+const urlParams = new URLSearchParams(location.search);
+const sourceData = {
+  session_id: sessionId,
+  utm_source: urlParams.get("utm_source") || "",
+  utm_medium: urlParams.get("utm_medium") || "",
+  utm_campaign: urlParams.get("utm_campaign") || "",
+  utm_content: urlParams.get("utm_content") || "",
+  referrer: document.referrer || ""
+};
+
+let currentStep = 0;
+let started = false;
+
+const stepTopics = ["Seu contexto","Aprendizagem","Autonomia digital","Visão de futuro","IA","Produtividade","Aprendizagem","Experiência com cursos","Criação","Trabalho","Pensamento computacional","Intenção","Seu objetivo","Seu principal obstáculo","Faixa de investimento"];
+const steps = [...document.querySelectorAll(".step")];
+
+function track(event, extra={}) {
+  const payload = {
+    event, ts: new Date().toISOString(),
+    ...sourceData, step: currentStep + 1, ...extra
+  };
+  try { window.dataLayer = window.dataLayer || []; window.dataLayer.push(payload); } catch(e){}
+  if (CONFIG.WEBHOOK_URL) {
+    try {
+      const body = new URLSearchParams({payload: JSON.stringify(payload)});
+      if (navigator.sendBeacon) navigator.sendBeacon(CONFIG.WEBHOOK_URL, body);
+      else fetch(CONFIG.WEBHOOK_URL,{method:"POST",body,mode:"no-cors",keepalive:true});
+    } catch(e) {
+      try { fetch(CONFIG.WEBHOOK_URL,{method:"POST",body:new URLSearchParams({payload: JSON.stringify(payload)}),mode:"no-cors",keepalive:true}); } catch(_){}
+    }
+  }
+  localStorage.setItem("mapa_ia_last_event", JSON.stringify(payload));
+}
+track("landing_view");
+
+function showStep(i){
+  currentStep=i;
+  steps.forEach((s,idx)=>s.classList.toggle("active",idx===i));
+  document.getElementById("stepLabel").textContent = `Etapa ${i+1} de ${steps.length}`;
+  document.getElementById("stepTopic").textContent = stepTopics[i] || "Diagnóstico";
+  document.getElementById("progressBar").style.width = `${((i)/ (steps.length-1))*100}%`;
+  window.scrollTo({top:document.getElementById("quizShell").offsetTop-20,behavior:"smooth"});
+  track("stage_view",{stage:i+1,topic:stepTopics[i]});
+}
+
+function nextStep(){
+  const step = steps[currentStep];
+  const requiredRadio = step.querySelector('input[type="radio"]');
+  if (requiredRadio) {
+    const checked = step.querySelector('input[type="radio"]:checked');
+    if (!checked) {
+      const err = document.getElementById("e"+currentStep);
+      if(err){err.style.display="block";}
+      return;
+    }
+  }
+  if(currentStep===0 && !started){started=true;track("diagnostic_started");}
+  if(currentStep < steps.length-1) showStep(currentStep+1);
+}
+function prevStep(){ if(currentStep>0) showStep(currentStep-1); }
+
+document.addEventListener("change",e=>{
+  if(e.target.matches('input[type="radio"]')){
+    const label=e.target.closest(".option");
+    if(label){
+      const group=e.target.name;
+      document.querySelectorAll(`input[name="${group}"]`).forEach(r=>r.closest(".option")?.classList.remove("selected"));
+      label.classList.add("selected");
+      track("answer_selected",{question:group,value:e.target.value});
+    }
+  }
+});
+document.querySelectorAll("textarea,input[type=text],input[type=email],input[type=tel]").forEach(el=>{
+  el.addEventListener("input",()=>track("field_interaction",{field:el.name||el.id}));
+});
+
+function clamp(n,min,max){return Math.max(min,Math.min(max,n))}
+function norm(arr){
+  if(!arr.length) return 0;
+  const avg=arr.reduce((a,b)=>a+b,0)/arr.length;
+  return Math.round(((avg-1)/3)*100);
+}
+
+function collectAnswers(){
+  const get=(n)=>document.querySelector(`input[name="${n}"]:checked`)?.value || "";
+  const dims={digital:[],ai:[],productivity:[],learn:[],future:[],create:[],career:[],computational:[],intent:[]};
+  for(let i=2;i<=12;i++){
+    const el=document.querySelector(`input[name="q${i}"]:checked`);
+    if(el){dims[el.dataset.dim]?.push(Number(el.value));}
+  }
+  return {
+    age:get("age"), q13:get("q13"),
+    q14:get("q14"), q14text:document.querySelector('[name="q14text"]')?.value.trim()||"",
+    q15:get("q15"), dims
+  };
+}
+
+function levelFrom(score){
+  if(score<35) return ["Ponto de partida","Você ainda tem espaço importante para desenvolver autonomia tecnológica."];
+  if(score<55) return ["Explorador","Você já tem alguma base, mas ainda não transforma todo o potencial em prática."];
+  if(score<75) return ["Usuário aplicado","Você tem uma base funcional e pode evoluir para aplicações mais estratégicas."];
+  return ["Criador em evolução","Você demonstra boa autonomia e pode avançar para criação, automação e soluções mais complexas."];
+}
+
+function finishQuiz(){
+  const step=steps[currentStep];
+  const checked=step.querySelector('input[type="radio"]:checked');
+  if(!checked){document.getElementById("e14").style.display="block";return;}
+  const data=collectAnswers();
+  const all = Object.values(data.dims).flat();
+  const total=norm(all);
+  const scores={
+    "Autonomia digital": norm(data.dims.digital),
+    "IA aplicada": norm(data.dims.ai),
+    "Produtividade & automação": norm(data.dims.productivity),
+    "Aprendizagem": norm(data.dims.learn),
+    "Visão de futuro": norm(data.dims.future),
+    "Criação tecnológica": norm(data.dims.create),
+    "Prontidão profissional": norm(data.dims.career),
+    "Pensamento computacional": norm(data.dims.computational),
+    "Intenção de evolução": norm(data.dims.intent)
+  };
+  const entries=Object.entries(scores).filter(([,v])=>v>0);
+  entries.sort((a,b)=>b[1]-a[1]);
+  const best=entries[0]?.[0]||"Aprendizagem";
+  const low=[...entries].sort((a,b)=>a[1]-b[1])[0]?.[0]||"IA aplicada";
+  const [todayLevel,todayDesc]=levelFrom(total);
+
+  let nextLevel="Usuário aplicado";
+  let nextDesc="Usar IA com mais autonomia em situações reais.";
+  let futureLevel="Criador de soluções";
+  let futureDesc="Avançar para automação, criação de ferramentas, aplicações e, para quem desejar, programação e Python.";
+
+  if(best==="Prontidão profissional"){
+    nextLevel="Profissional aumentado";
+    nextDesc="Integrar IA ao conhecimento que você já possui.";
+  } else if(best==="Pensamento computacional" || best==="Criação tecnológica"){
+    nextLevel="Criador em evolução";
+    nextDesc="Aprender a transformar problemas em soluções tecnológicas.";
+  } else if(best==="Visão de futuro"){
+    nextLevel="Explorador consciente";
+    nextDesc="Experimentar aplicações práticas até encontrar seus melhores caminhos.";
+  }
+
+  let summary = `Seu resultado indica o perfil “${todayLevel}”. Seu maior diferencial hoje está em ${best.toLowerCase()}, enquanto ${low.toLowerCase()} aparece como seu maior espaço de desenvolvimento.`;
+  document.getElementById("resultTitle").textContent=`Seu perfil: ${todayLevel}`;
+  document.getElementById("resultSummary").textContent=summary;
+  document.getElementById("whereText").textContent=todayDesc + " Isso não significa estar “atrasado”: significa que agora você consegue enxergar com mais clareza o que desenvolver primeiro.";
+  document.getElementById("todayLevel").textContent=todayLevel;
+  document.getElementById("todayDesc").textContent=todayDesc;
+  document.getElementById("nextLevel").textContent=nextLevel;
+  document.getElementById("nextDesc").textContent=nextDesc;
+  document.getElementById("futureLevel").textContent=futureLevel;
+  document.getElementById("futureDesc").textContent=futureDesc;
+  document.getElementById("growthArea").textContent=`${low}, porque é a dimensão que mais pode ampliar sua capacidade atual quando trabalhada de forma prática e acompanhada.`;
+
+  const meters=document.getElementById("meters");
+  meters.innerHTML="";
+  Object.entries(scores).forEach(([name,val])=>{
+    if(!val)return;
+    const div=document.createElement("div");div.className="meter";
+    div.innerHTML=`<div class="meter-row"><span>${name}</span><span>${val}/100</span></div><div class="bar"><div style="width:${val}%"></div></div>`;
+    meters.appendChild(div);
+  });
+
+  const goalMap={
+    prod:"Trabalhar melhor e ganhar produtividade.", recoloc:"Buscar recolocação.", negocio:"Melhorar o próprio negócio.",
+    pessoal:"Atualizar-se para a vida e acompanhar o avanço tecnológico.", carreira:"Explorar uma nova carreira.", descobrir:"Descobrir o que faz sentido para você."
+  };
+  document.getElementById("goalQuote").textContent = goalMap[data.q13] || "Seu objetivo principal foi registrado para orientar o próximo passo.";
+  const blockerMap={
+    nao_sei:"Não saber por onde começar.",
+    tempo:"Falta de tempo.",
+    curso:"Já ter feito cursos, mas não ter conseguido transformar conteúdo em prática.",
+    medo:"Medo de não conseguir ou acompanhar.",
+    excesso:"Excesso de ferramentas e pouca direção.",
+    financeiro:"Questão financeira neste momento."
+  };
+  document.getElementById("blockerText").textContent = blockerMap[data.q14] || "Ainda não informado.";
+  if(data.q14text){ document.getElementById("blockerText").textContent += ` ${data.q14text}`; }
+
+  const budgetScore={ate50:1,"51_100":2,"101_150":3,"151_200":4,"201_300":5,"301_plus":6,nao_agora:0}[data.q15] ?? 0;
+  const intentScore=scores["Intenção de evolução"]||0;
+  const leadPriority = Math.round((intentScore*0.6)+(budgetScore/6*100*0.4));
+  localStorage.setItem("mapa_ia_result",JSON.stringify({data,scores,total,todayLevel,todayLevelDesc:todayDesc,best,low,budgetScore,leadPriority,nextLevel,nextDesc,futureLevel,futureDesc}));
+  track("diagnostic_completed",{total_score:total,scores,best_dimension:best,growth_dimension:low,objective:data.q13,age:data.age,blocker:data.q14,budget_band:data.q15,lead_priority:leadPriority});
+  document.getElementById("quizForm").classList.add("hidden");
+  document.querySelector(".quiz-head").classList.add("hidden");
+  document.getElementById("result").classList.add("active");
+  track("report_gate_view",{total_score:total,lead_priority:leadPriority});
+  window.scrollTo({top:document.getElementById("quizShell").offsetTop-20,behavior:"smooth"});
+}
+
+async function submitLead(){
+  const name=document.getElementById("name").value.trim();
+  const email=document.getElementById("email").value.trim();
+  const phone=document.getElementById("phone").value.trim();
+  const consent=document.getElementById("consent").checked;
+  const err=document.getElementById("leadError");
+  err.style.display="none";
+  if(!name || !email || !phone || !consent){
+    err.textContent="Preencha nome, e-mail, WhatsApp e autorize o contato para receber o relatório.";
+    err.style.display="block"; return;
+  }
+  const result=JSON.parse(localStorage.getItem("mapa_ia_result")||"{}");
+  const lead={
+    event:"lead_submitted", ts:new Date().toISOString(), ...sourceData,
+    name,email,phone,consent:true,
+    ...result
+  };
+  track("lead_submitted",{name,email,phone,objective:result.data?.q13,blocker:result.data?.q14,budget_band:result.data?.q15,total_score:result.total,lead_priority:result.leadPriority});
+  if(CONFIG.WEBHOOK_URL){
+    try{
+      await fetch(CONFIG.WEBHOOK_URL,{method:"POST",body:new URLSearchParams({payload: JSON.stringify(lead)}),mode:"no-cors",keepalive:true});
+    }catch(e){}
+  }
+  document.getElementById("fullReport").classList.remove("hidden");
+  document.getElementById("nextStepCard").classList.remove("hidden");
+  const wa=document.getElementById("whatsappCta");
+  if(CONFIG.WHATSAPP_URL){
+    const msg=encodeURIComponent(`Olá! Fiz o Mapa IA 40+ e meu resultado apontou ${result.low || "um espaço de desenvolvimento"} como principal oportunidade. Gostaria de entender como funcionam as aulas individuais.`);
+    wa.href=CONFIG.WHATSAPP_URL + (CONFIG.WHATSAPP_URL.includes("?") ? "&text=" : "?text=") + msg;
+    wa.classList.remove("hidden");
+  }
+  track("report_released",{name,email,phone,total_score:result.total,budget_band:result.data?.q15});
+  err.textContent="Pronto. Seu resultado foi liberado abaixo.";
+  err.style.color="#1f7c56"; err.style.display="block";
+  document.querySelector(".lead .cta").textContent="Cadastro recebido ✓";
+  document.querySelector(".lead .cta").disabled=true;
+  document.querySelector(".lead .cta").style.opacity=".8";
+}
+
+function downloadPDF(){
+  try{
+    const result=JSON.parse(localStorage.getItem("mapa_ia_result")||"{}");
+    const name=document.getElementById("name")?.value.trim() || "Participante";
+    const scores=result.scores||{};
+    const { jsPDF } = window.jspdf || {};
+    if(!jsPDF) throw new Error("Biblioteca PDF indisponível");
+    const doc=new jsPDF({unit:"pt",format:"a4"});
+    const W=595, M=42;
+    let y=48;
+    const navy=[7,26,51], gold=[214,166,43], gray=[96,108,125];
+    const addText=(txt,x,yy,size=11,opts={})=>{
+      doc.setFont("helvetica",opts.bold?"bold":"normal");
+      doc.setFontSize(size); doc.setTextColor(...(opts.color||[17,32,51]));
+      const lines=doc.splitTextToSize(String(txt),opts.maxW||W-2*M);
+      doc.text(lines,x,yy); return yy+lines.length*(size+4);
+    };
+    doc.setFillColor(...navy); doc.rect(0,0,W,115,"F");
+    doc.setTextColor(255,255,255); doc.setFont("helvetica","bold"); doc.setFontSize(25); doc.text("MAPA IA 40+",M,48);
+    doc.setFont("helvetica","normal"); doc.setFontSize(12); doc.text("Seu ponto de partida tecnológico",M,72);
+    doc.setFontSize(10); doc.text(new Date().toLocaleDateString("pt-BR"),W-M,72,{align:"right"});
+    y=145;
+    y=addText(`Seu mapa, ${name}`,M,y,20,{bold:true,color:navy,maxW:500});
+    y=addText(`Perfil: ${result.todayLevel||""}`,M,y+8,14,{bold:true,color:gold});
+    y=addText(`Índice de preparação tecnológica: ${result.total||0}/100`,M,y+18,13,{bold:true});
+    y=addText(result.todayLevelDesc||"",M,y+10,11,{color:gray});
+    y+=15;
+    doc.setFont("helvetica","bold");doc.setFontSize(14);doc.setTextColor(...navy);doc.text("Suas dimensões",M,y); y+=18;
+    Object.entries(scores).forEach(([label,val])=>{
+      doc.setFont("helvetica","normal");doc.setFontSize(10);doc.setTextColor(17,32,51);doc.text(label,M,y);
+      doc.text(`${val}/100`,W-M,y,{align:"right"});
+      doc.setFillColor(232,237,242);doc.roundedRect(M,y+6,W-2*M,7,3,3,"F");
+      doc.setFillColor(...gold);doc.roundedRect(M,y+6,(W-2*M)*Math.max(0,Math.min(100,val))/100,7,3,3,"F"); y+=25;
+    });
+    if(y>700){doc.addPage();y=50;}
+    y+=4; doc.setFont("helvetica","bold");doc.setFontSize(14);doc.setTextColor(...navy);doc.text("Onde você está",M,y);y+=18;
+    y=addText(result.whereText||"",M,y,11,{maxW:510}); y+=10;
+    doc.setFont("helvetica","bold");doc.setFontSize(14);doc.setTextColor(...navy);doc.text("Onde você pode chegar",M,y);y+=18;
+    y=addText(`Próximo estágio: ${result.nextLevel||"Usuário aplicado"}.`,M,y,11,{bold:true,maxW:510});
+    y=addText(`Possibilidades: ${result.futureLevel||"Criador de soluções"}.`,M,y+4,11,{maxW:510});
+    y=addText(`Maior espaço de desenvolvimento: ${result.low||""}.`,M,y+4,11,{bold:true,maxW:510});
+    y+=14;
+    y=addText("Seu objetivo: "+(document.getElementById("goalQuote")?.innerText||""),M,y,11,{maxW:510});
+    y=addText("Seu principal obstáculo: "+(document.getElementById("blockerText")?.innerText||""),M,y+4,11,{maxW:510});
+    if(y>710){doc.addPage();y=50;}
+    y+=18;doc.setFillColor(247,245,239);doc.roundedRect(M,y,W-2*M,110,10,10,"F");
+    y+=24;doc.setFont("helvetica","bold");doc.setFontSize(14);doc.setTextColor(...navy);doc.text("Como transformar o mapa em prática",M+16,y);y+=20;
+    y=addText("Aulas individuais, 2 vezes por semana, 90 minutos, 100% remotas, diretamente com o professor e construídas em quatro mãos.",M+16,y,10,{maxW:W-2*M-32});
+    y=addText("Você começa do seu nível e evolui conforme seu objetivo: IA prática, produtividade, criação, automação, aplicativos e, para quem quiser, Python.",M+16,y+4,10,{maxW:W-2*M-32});
+    y+=10; addText("Este relatório é uma ferramenta de orientação, não uma promessa de emprego ou resultado.",M+16,y,9,{color:gray,maxW:W-2*M-32});
+    doc.setTextColor(120,130,145);doc.setFontSize(8);doc.text("MAPA IA 40+ · Saquarema/RJ",M,815);
+    doc.save(`Mapa-IA-40+-${name.replace(/[^a-z0-9]+/gi,"-")}.pdf`);
+    track("pdf_downloaded",{name});
+  }catch(err){
+    track("pdf_download_error",{message:String(err)});
+    window.print();
+  }
+}
+
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="hidden" && started && !document.getElementById("result").classList.contains("active")){
+    track("diagnostic_abandoned",{last_step:currentStep+1});
+  }
+});
+
+document.querySelector('a[href="#diagnostico"]').addEventListener("click",()=>track("cta_hero"));
+</script>
+</body>
+</html>
