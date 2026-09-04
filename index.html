@@ -536,34 +536,44 @@ function showStep(i){
   document.getElementById("progressBar").style.width = `${((i)/ (steps.length-1))*100}%`;
   window.scrollTo({top:document.getElementById("quizShell").offsetTop-20,behavior:"smooth"});
   track("stage_view",{stage:i+1,topic:stepTopics[i]});
+  updateFunnelSnapshot({last_step:i+1,last_topic:stepTopics[i]});
 }
 
 function nextStep(){
   const step = steps[currentStep];
   const requiredRadio = step.querySelector('input[type="radio"]');
+
   if (requiredRadio) {
     const checked = step.querySelector('input[type="radio"]:checked');
     if (!checked) {
       const err = document.getElementById("e"+currentStep);
-      if(err){err.style.display="block";}
+      if (err) err.style.display = "block";
       return;
     }
   }
-  if(currentStep===0 && !started){started=true;track("diagnostic_started");}
-  if(currentStep < steps.length-1) showStep(currentStep+1);
+
+  if (currentStep === 0 && !started) {
+    started = true;
+    track("diagnostic_started");
+  }
+
+  const fromStep = currentStep + 1;
+  const nextIndex = currentStep + 1;
+
+  if (nextIndex < steps.length) {
+    showStep(nextIndex);
+    // UM único registro por avanço real.
+    track("progress_step", {
+      from_step: fromStep,
+      to_step: nextIndex + 1
+    });
+  }
 }
 function prevStep(){ if(currentStep>0) showStep(currentStep-1); }
 
-document.addEventListener("change",e=>{
-  if(e.target.matches('input[type="radio"]')){
-    const label=e.target.closest(".option");
-    if(label){
-      const group=e.target.name;
-      document.querySelectorAll(`input[name="${group}"]`).forEach(r=>r.closest(".option")?.classList.remove("selected"));
-      label.classList.add("selected");
-      track("answer_selected",{question:group,value:e.target.value});
-    }
-  }
+document.addEventListener("change", e => {
+  // A resposta fica apenas no formulário.
+  // O funil registra avanço somente quando o usuário clica em "Continuar".
 });
 document.querySelectorAll("textarea,input[type=text],input[type=email],input[type=tel]").forEach(el=>{
   el.addEventListener("input",()=>track("field_interaction",{field:el.name||el.id}));
@@ -788,11 +798,33 @@ function downloadPDF(){
   }
 }
 
-document.addEventListener("visibilitychange",()=>{
-  if(document.visibilityState==="hidden" && started && !document.getElementById("result").classList.contains("active")){
-    track("diagnostic_abandoned",{last_step:currentStep+1});
+let abandonmentSent = false;
+document.addEventListener("visibilitychange", ()=>{
+  if (
+    document.visibilityState === "hidden" &&
+    started &&
+    !abandonmentSent &&
+    !document.getElementById("result").classList.contains("active")
+  ) {
+    abandonmentSent = true;
+    track("diagnostic_abandoned", {
+      last_step: currentStep + 1
+    });
   }
 });
+
+
+function updateFunnelSnapshot(extra={}){
+  const snap = JSON.parse(localStorage.getItem("mapa_ia_funnel_snapshot") || "{}");
+  Object.assign(snap, {
+    session_id: sourceData.session_id,
+    last_step: currentStep + 1,
+    last_topic: stepTopics[currentStep],
+    updated_at: new Date().toISOString(),
+    ...extra
+  });
+  localStorage.setItem("mapa_ia_funnel_snapshot", JSON.stringify(snap));
+}
 
 document.querySelector('a[href="#diagnostico"]').addEventListener("click",()=>track("cta_hero"));
 </script>
