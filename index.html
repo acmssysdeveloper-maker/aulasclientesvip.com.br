@@ -714,7 +714,7 @@ async function submitLead(){
   // Prepara desde já os próximos caminhos: agente e aula.
   const agentCta=document.getElementById("agentCta");
   if(agentCta){
-    agentCta.href=CONFIG.WEBHOOK_URL+"?app=agente&sid="+encodeURIComponent(sessionId);
+    agentCta.href=CONFIG.WEBHOOK_URL+"?app=agente#sid="+encodeURIComponent(sessionId);
     agentCta.onclick=function(){ track("agent_click",{channel:"agent",objective:result.data?.q13}); };
   }
   const wa=document.getElementById("whatsappCta");
