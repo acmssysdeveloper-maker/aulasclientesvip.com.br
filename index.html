@@ -126,6 +126,9 @@ input:focus,textarea:focus,select:focus{border-color:#9eacba;box-shadow:0 0 0 4p
  .result-grid{padding:20px}
  .stats{grid-template-columns:1fr 1fr}
 }
+<style>
+.processing-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(7,26,51,.54);backdrop-filter:blur(3px);z-index:9999;padding:24px}.processing-overlay.show{display:flex}.processing-card{width:min(440px,100%);background:#fff;border-radius:18px;padding:24px;box-shadow:0 22px 70px rgba(0,0,0,.2);text-align:center}.processing-card .spinner{width:42px;height:42px;border:4px solid #e8edf2;border-top-color:#d6a62b;border-radius:50%;animation:spin .9s linear infinite;margin:0 auto 14px}.processing-card h3{margin:0 0 8px;color:#071a33;font-size:18px}.processing-card p{margin:0;color:#66758a;font-size:12px;line-height:1.55}.processing-stage{font-weight:800;color:#9a7311;margin-top:9px;font-size:11px}@keyframes spin{to{transform:rotate(360deg)}}
+</style>
 </style>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 </head>
@@ -450,7 +453,7 @@ input:focus,textarea:focus,select:focus{border-color:#9eacba;box-shadow:0 0 0 4p
             <p class="result-copy">Você já pode ver seu perfil geral. Para liberar o mapa completo, com as dimensões, seu principal espaço de desenvolvimento e o relatório em PDF, preencha seus dados abaixo.</p>
             <div class="notice"><b>Seus dados não são usados para alterar sua pontuação.</b> Eles servem para entregar o relatório e, se você autorizar, entrar em contato sobre as aulas.</div>
           </div>
-          <div class="card lead">
+          <div class="card lead" id="leadCard">
             <h3>Quer receber seu mapa completo e o próximo passo?</h3>
             <p class="small">Agora, para liberar seu relatório personalizado e permitir que eu entenda seu momento, preencha seus dados. Eles serão usados apenas para contato relacionado a este diagnóstico.</p>
             <div class="field"><label for="name">Nome</label><input id="name" type="text" autocomplete="name" placeholder="Seu nome"></div>
@@ -486,6 +489,15 @@ input:focus,textarea:focus,select:focus{border-color:#9eacba;box-shadow:0 0 0 4p
   </div>
 </section>
 
+
+<div id="processingOverlay" class="processing-overlay" aria-hidden="true">
+  <div class="processing-card">
+    <div class="spinner"></div>
+    <h3 id="processingTitle">Processando…</h3>
+    <p id="processingText">Aguarde um instante.</p>
+    <div id="processingStage" class="processing-stage">Preparando</div>
+  </div>
+</div>
 
 <div id="directLessonModal" class="direct-modal" aria-hidden="true">
   <div class="direct-card" role="dialog" aria-modal="true" aria-labelledby="directLessonTitle">
@@ -524,6 +536,7 @@ const CONFIG = {
   // Cole aqui, quando quiser, o link oficial do seu WhatsApp, por exemplo: https://wa.me/55XXXXXXXXXXX
   // O telefone não aparece em lugar nenhum enquanto este campo estiver vazio.
   WHATSAPP_URL: "https://wa.me/5522999680509",
+  WHATSAPP_NUMBER: "5522999680509",
   BRAND: "Mapa IA 40+",
   REMOTE_CLASS_TEXT: "Aulas individuais, 2 vezes por semana, 90 minutos, 100% remotas, construídas em quatro mãos."
 };
@@ -724,7 +737,26 @@ function levelFrom(score){
   return ["Criador em evolução","Você demonstra boa autonomia e pode avançar para criação, automação e soluções mais complexas."];
 }
 
-function finishQuiz(){
+function showProcessing(title,text,stage){
+  const o=document.getElementById("processingOverlay");
+  document.getElementById("processingTitle").textContent=title;
+  document.getElementById("processingText").textContent=text;
+  document.getElementById("processingStage").textContent=stage;
+  o.classList.add("show");o.setAttribute("aria-hidden","false");
+}
+function updateProcessing(title,text,stage){
+  document.getElementById("processingTitle").textContent=title;
+  document.getElementById("processingText").textContent=text;
+  document.getElementById("processingStage").textContent=stage;
+}
+function hideProcessing(){
+  const o=document.getElementById("processingOverlay");o.classList.remove("show");o.setAttribute("aria-hidden","true");
+}
+function nextFrame(){return new Promise(function(resolve){requestAnimationFrame(function(){requestAnimationFrame(resolve);});});}
+
+async function finishQuiz(){
+  showProcessing("Lendo suas respostas…","Estou cruzando suas respostas e organizando seu mapa personalizado.","Leitura e análise");
+  await nextFrame();
   const step=steps[currentStep];
   const checked=step.querySelector('input[type="radio"]:checked');
   if(!checked){document.getElementById("e14").style.display="block";return;}
@@ -811,9 +843,12 @@ function finishQuiz(){
   document.getElementById("result").classList.add("active");
   track("report_gate_view",{total_score:total,lead_priority:leadPriority});
   window.scrollTo({top:document.getElementById("quizShell").offsetTop-20,behavior:"smooth"});
+  hideProcessing();
 }
 
 async function submitLead(){
+  showProcessing("Liberando seu relatório…","Seu cadastro foi recebido. Estou preparando o acesso ao mapa completo.","Entrega do relatório");
+  await nextFrame();
   const name=document.getElementById("name").value.trim();
   const email=document.getElementById("email").value.trim();
   const phone=document.getElementById("phone").value.trim();
@@ -821,6 +856,7 @@ async function submitLead(){
   const err=document.getElementById("leadError");
   err.style.display="none";
   if(!name || !email || !phone || !consent){
+    hideProcessing();
     err.textContent="Preencha nome, e-mail, WhatsApp e autorize o contato para receber o relatório.";
     err.style.display="block"; return;
   }
@@ -850,6 +886,7 @@ async function submitLead(){
   track("lead_captured",{name,email,phone,objective:result.data?.q13,blocker:result.data?.q14,budget_band:result.data?.q15,total_score:result.total,lead_priority:result.leadPriority});
   document.getElementById("fullReport").classList.remove("hidden");
   document.getElementById("nextStepCard").classList.remove("hidden");
+  document.getElementById("leadCard").classList.add("hidden");
   const wa=document.getElementById("whatsappCta");
   const agent=document.getElementById("agentCta");
   const agentUrl=CONFIG.WEBHOOK_URL+"?app=agente&sid="+encodeURIComponent(sessionId);
@@ -860,15 +897,18 @@ async function submitLead(){
     wa.onclick=()=>track("whatsapp_click",{objective:result.data?.q13});
   }
   track("report_released",{name,email,phone,total_score:result.total,budget_band:result.data?.q15});
-  err.textContent="Pronto. Seu resultado foi liberado abaixo.";
+  err.textContent="Cadastro confirmado. Seu mapa completo foi liberado abaixo.";
   err.style.color="#1f7c56"; err.style.display="block";
   document.querySelector(".lead .cta").textContent="Cadastro recebido ✓";
   document.querySelector(".lead .cta").disabled=true;
   document.querySelector(".lead .cta").style.opacity=".8";
+  hideProcessing();
 }
 
-function downloadPDF(){
+async function downloadPDF(){
   track("pdf_downloaded", {report:true});
+  showProcessing("Gerando seu PDF…","Seu relatório está sendo montado. Aguarde só um instante.","Preparação do PDF");
+  await nextFrame();
   try{
     const result=JSON.parse(localStorage.getItem("mapa_ia_result")||"{}");
     const name=document.getElementById("name")?.value.trim() || "Participante";
@@ -920,15 +960,16 @@ function downloadPDF(){
     y+=10; addText("Este relatório é uma ferramenta de orientação, não uma promessa de emprego ou resultado.",M+16,y,9,{color:gray,maxW:W-2*M-32});
     doc.setTextColor(120,130,145);doc.setFontSize(8);doc.text("MAPA IA 40+ · Saquarema/RJ",M,815);
     doc.save(`Mapa-IA-40+-${name.replace(/[^a-z0-9]+/gi,"-")}.pdf`);
+    updateProcessing("PDF gerado.","Seu mapa foi salvo. Agora vamos continuar pelo agente para tirar dúvidas e escolher o próximo passo.","Abrindo atendimento");
     track("pdf_downloaded",{name});
     // Pós-PDF: entra automaticamente no atendimento antes do WhatsApp.
     const agentUrl=CONFIG.WEBHOOK_URL+"?app=agente&sid="+encodeURIComponent(sessionId);
-    setTimeout(function(){ window.location.href=agentUrl; }, 500);
+    setTimeout(function(){ hideProcessing(); window.location.href=agentUrl; }, 900);
   }catch(err){
     track("pdf_download_error",{message:String(err)});
     window.print();
     const agentUrl=CONFIG.WEBHOOK_URL+"?app=agente&sid="+encodeURIComponent(sessionId);
-    setTimeout(function(){ window.location.href=agentUrl; }, 1200);
+    setTimeout(function(){ hideProcessing(); window.location.href=agentUrl; }, 1200);
   }
 }
 
