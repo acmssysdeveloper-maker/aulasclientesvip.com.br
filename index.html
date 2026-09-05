@@ -94,6 +94,21 @@ input:focus,textarea:focus,select:focus{border-color:#9eacba;box-shadow:0 0 0 4p
 .callout{border-left:4px solid var(--gold);padding:10px 14px;background:#fbfaf6}
 .result-copy{font-size:15px}
 .hidden{display:none!important}
+
+.direct-lesson{background:#fff9df;border:1px solid #edd88b;border-radius:16px;padding:18px;margin-top:20px;display:flex;align-items:center;justify-content:space-between;gap:18px;box-shadow:0 8px 24px rgba(7,26,51,.05)}
+.direct-lesson b{display:block;font-size:15px;color:var(--navy)}
+.direct-lesson span{display:block;color:var(--muted);font-size:12px;margin-top:4px;line-height:1.4}
+.direct-btn{background:var(--gold2);color:var(--navy);border:0;border-radius:11px;padding:13px 17px;font-weight:900;cursor:pointer;white-space:nowrap}
+.direct-modal{position:fixed;inset:0;background:rgba(7,26,51,.58);display:none;align-items:center;justify-content:center;padding:18px;z-index:90}
+.direct-modal.open{display:flex}
+.direct-card{width:min(520px,100%);background:#fff;border-radius:18px;padding:22px;box-shadow:0 30px 80px rgba(0,0,0,.25)}
+.direct-card h3{margin:0 0 7px;font-size:23px;color:var(--navy)}
+.direct-card p{margin:0;color:var(--muted);font-size:12px;line-height:1.5}
+.direct-actions{display:flex;gap:9px;justify-content:flex-end;margin-top:16px}
+.direct-close{background:#eef2f6;color:var(--navy);border:0;border-radius:10px;padding:11px 14px;font-weight:800;cursor:pointer}
+.direct-error{display:none;color:#8d3a3a;background:#fff2f2;border:1px solid #edc7c7;border-radius:10px;padding:9px;font-size:11px;margin-top:10px}
+@media(max-width:640px){.direct-lesson{align-items:flex-start;flex-direction:column}.direct-btn{width:100%}.direct-actions{flex-direction:column}.direct-close,.direct-actions .btn-primary{width:100%}}
+
 @media(max-width:900px){
  .grid2{grid-template-columns:1fr}
  .stats{grid-template-columns:1fr 1fr}
@@ -127,6 +142,10 @@ input:focus,textarea:focus,select:focus{border-color:#9eacba;box-shadow:0 0 0 4p
     <p>Um auto-diagnóstico rápido para entender como sua experiência, sua capacidade de aprender e seu uso de tecnologia estão preparados para o mundo atual.</p>
     <a class="cta" href="#diagnostico" onclick="track('cta_hero')">Começar meu mapa →</a>
     <div class="micro">Leva poucos minutos. Você recebe seu mapa na própria página.</div>
+    <div class="direct-lesson">
+      <div><b>Já decidiu que quer fazer a aula?</b><span>Você não precisa responder o diagnóstico. Cadastre seus dados e vá direto para o próximo passo.</span></div>
+      <button class="direct-btn" type="button" onclick="openDirectLesson()">🔥 Quero fazer a aula agora</button>
+    </div>
   </div>
 </section>
 
@@ -464,6 +483,20 @@ input:focus,textarea:focus,select:focus{border-color:#9eacba;box-shadow:0 0 0 4p
   </div>
 </section>
 
+
+<div id="directLessonModal" class="direct-modal" aria-hidden="true">
+  <div class="direct-card" role="dialog" aria-modal="true" aria-labelledby="directLessonTitle">
+    <h3 id="directLessonTitle">Quero fazer a aula</h3>
+    <p>Preencha apenas seus dados de contato. Você não precisa fazer o diagnóstico para seguir por este caminho.</p>
+    <div class="field"><label for="directName">Nome</label><input id="directName" type="text" autocomplete="name" placeholder="Seu nome"></div>
+    <div class="field"><label for="directEmail">E-mail</label><input id="directEmail" type="email" autocomplete="email" placeholder="seu@email.com"></div>
+    <div class="field"><label for="directPhone">WhatsApp</label><input id="directPhone" type="tel" autocomplete="tel" placeholder="(DDD) 99999-9999"></div>
+    <div class="field"><label style="display:flex;gap:8px;align-items:flex-start;font-weight:600;font-size:11px"><input id="directConsent" type="checkbox" style="width:auto;margin-top:2px"> Autorizo o contato para tratar da minha solicitação de aula.</label></div>
+    <div id="directError" class="direct-error"></div>
+    <div class="direct-actions"><button class="direct-close" type="button" onclick="closeDirectLesson()">Voltar</button><button class="btn-primary" type="button" onclick="submitDirectLesson()">Continuar para o WhatsApp →</button></div>
+  </div>
+</div>
+
 <footer class="footer">
   <div class="container">
     <b>MAPA IA 40+</b> · Auto-diagnóstico de prontidão tecnológica · Saquarema, RJ<br>
@@ -519,7 +552,9 @@ const FUNNEL_EVENTS = new Set([
   "lead_captured",
   "report_released",
   "pdf_downloaded",
-  "whatsapp_click"
+  "whatsapp_click",
+  "direct_lesson_view",
+  "direct_lesson_submitted"
 ]);
 
 function track(event, extra={}) {
@@ -555,6 +590,42 @@ function track(event, extra={}) {
   }
 
   localStorage.setItem("mapa_ia_last_event", JSON.stringify(payload));
+}
+
+function openDirectLesson(){
+  const modal=document.getElementById("directLessonModal");
+  modal.classList.add("open");modal.setAttribute("aria-hidden","false");
+  setTimeout(()=>document.getElementById("directName")?.focus(),50);
+  track("direct_lesson_view");
+}
+function closeDirectLesson(){
+  const modal=document.getElementById("directLessonModal");
+  modal.classList.remove("open");modal.setAttribute("aria-hidden","true");
+}
+async function submitDirectLesson(){
+  const name=document.getElementById("directName").value.trim();
+  const email=document.getElementById("directEmail").value.trim();
+  const phone=document.getElementById("directPhone").value.trim();
+  const consent=document.getElementById("directConsent").checked;
+  const err=document.getElementById("directError");
+  err.style.display="none";err.textContent="";
+  if(!name||!email||!phone){err.textContent="Preencha nome, e-mail e WhatsApp.";err.style.display="block";return;}
+  if(!consent){err.textContent="Autorize o contato para continuar.";err.style.display="block";return;}
+  if(!CONFIG.WEBHOOK_URL){err.textContent="O atendimento direto ainda não está configurado.";err.style.display="block";return;}
+  const payload={event:"direct_lesson_lead",ts:new Date().toISOString(),...sourceData,session_id:sessionId,name,email,phone,consent:true};
+  let popup=null;
+  try{
+    popup=window.open("about:blank","_blank");
+    await fetch(CONFIG.WEBHOOK_URL,{method:"POST",body:new URLSearchParams({payload:JSON.stringify(payload)}),mode:"no-cors",keepalive:true});
+    localStorage.setItem("mapa_ia_direct_lesson",JSON.stringify(payload));
+    track("direct_lesson_submitted",{name,email,phone});
+    closeDirectLesson();
+    const bridge=CONFIG.WEBHOOK_URL+"?action=whatsapp&sid="+encodeURIComponent(sessionId);
+    if(popup && !popup.closed) popup.location.href=bridge; else window.location.href=bridge;
+  }catch(e){
+    if(popup && !popup.closed){try{popup.close();}catch(_){}}
+    err.textContent="Não conseguimos preparar o encaminhamento agora. Tente novamente.";err.style.display="block";
+  }
 }
 
 track("landing_view");
