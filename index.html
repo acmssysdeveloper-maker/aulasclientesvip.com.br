@@ -509,23 +509,54 @@ let started = false;
 const stepTopics = ["Seu contexto","Aprendizagem","Autonomia digital","Visão de futuro","IA","Produtividade","Aprendizagem","Experiência com cursos","Criação","Trabalho","Pensamento computacional","Intenção","Seu objetivo","Seu principal obstáculo","Faixa de investimento"];
 const steps = [...document.querySelectorAll(".step")];
 
+const FUNNEL_EVENTS = new Set([
+  "landing_view",
+  "diagnostic_started",
+  "progress_step",
+  "diagnostic_abandoned",
+  "diagnostic_completed",
+  "report_gate_view",
+  "lead_captured",
+  "report_released",
+  "pdf_downloaded",
+  "whatsapp_click"
+]);
+
 function track(event, extra={}) {
+  if (!FUNNEL_EVENTS.has(event)) return;
+
   const payload = {
-    event, ts: new Date().toISOString(),
-    ...sourceData, step: currentStep + 1, ...extra
+    event,
+    ts: new Date().toISOString(),
+    ...sourceData,
+    step: currentStep + 1,
+    ...extra
   };
-  try { window.dataLayer = window.dataLayer || []; window.dataLayer.push(payload); } catch(e){}
+
+  try {
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push(payload);
+  } catch(e) {}
+
   if (CONFIG.WEBHOOK_URL) {
     try {
       const body = new URLSearchParams({payload: JSON.stringify(payload)});
-      if (navigator.sendBeacon) navigator.sendBeacon(CONFIG.WEBHOOK_URL, body);
-      else fetch(CONFIG.WEBHOOK_URL,{method:"POST",body,mode:"no-cors",keepalive:true});
-    } catch(e) {
-      try { fetch(CONFIG.WEBHOOK_URL,{method:"POST",body:new URLSearchParams({payload: JSON.stringify(payload)}),mode:"no-cors",keepalive:true}); } catch(_){}
-    }
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(CONFIG.WEBHOOK_URL, body);
+      } else {
+        fetch(CONFIG.WEBHOOK_URL, {
+          method: "POST",
+          body,
+          mode: "no-cors",
+          keepalive: true
+        });
+      }
+    } catch(e) {}
   }
+
   localStorage.setItem("mapa_ia_last_event", JSON.stringify(payload));
 }
+
 track("landing_view");
 
 function showStep(i){
@@ -535,8 +566,7 @@ function showStep(i){
   document.getElementById("stepTopic").textContent = stepTopics[i] || "Diagnóstico";
   document.getElementById("progressBar").style.width = `${((i)/ (steps.length-1))*100}%`;
   window.scrollTo({top:document.getElementById("quizShell").offsetTop-20,behavior:"smooth"});
-  track("stage_view",{stage:i+1,topic:stepTopics[i]});
-  updateFunnelSnapshot({last_step:i+1,last_topic:stepTopics[i]});
+  
 }
 
 function nextStep(){
@@ -562,7 +592,7 @@ function nextStep(){
 
   if (nextIndex < steps.length) {
     showStep(nextIndex);
-    // UM único registro por avanço real.
+    // O funil recebe somente este avanço real.
     track("progress_step", {
       from_step: fromStep,
       to_step: nextIndex + 1
@@ -571,12 +601,7 @@ function nextStep(){
 }
 function prevStep(){ if(currentStep>0) showStep(currentStep-1); }
 
-document.addEventListener("change", e => {
-  // A resposta fica apenas no formulário.
-  // O funil registra avanço somente quando o usuário clica em "Continuar".
-});
-document.querySelectorAll("textarea,input[type=text],input[type=email],input[type=tel]").forEach(el=>{
-  el.addEventListener("input",()=>track("field_interaction",{field:el.name||el.id}));
+
 });
 
 function clamp(n,min,max){return Math.max(min,Math.min(max,n))}
@@ -729,6 +754,7 @@ async function submitLead(){
   if(CONFIG.WHATSAPP_URL){
     const msg=encodeURIComponent(`Olá! Fiz o Mapa IA 40+ e meu resultado apontou ${result.low || "um espaço de desenvolvimento"} como principal oportunidade. Gostaria de entender como funcionam as aulas individuais.`);
     wa.href=CONFIG.WHATSAPP_URL + (CONFIG.WHATSAPP_URL.includes("?") ? "&text=" : "?text=") + msg;
+    wa.onclick=()=>track("whatsapp_click",{objective:result.data?.q13});
     wa.classList.remove("hidden");
   }
   track("report_released",{name,email,phone,total_score:result.total,budget_band:result.data?.q15});
@@ -740,6 +766,7 @@ async function submitLead(){
 }
 
 function downloadPDF(){
+  track("pdf_downloaded", {report:true});
   try{
     const result=JSON.parse(localStorage.getItem("mapa_ia_result")||"{}");
     const name=document.getElementById("name")?.value.trim() || "Participante";
@@ -799,32 +826,25 @@ function downloadPDF(){
 }
 
 let abandonmentSent = false;
+let abandonTimer = null;
 document.addEventListener("visibilitychange", ()=>{
-  if (
-    document.visibilityState === "hidden" &&
-    started &&
-    !abandonmentSent &&
-    !document.getElementById("result").classList.contains("active")
-  ) {
-    abandonmentSent = true;
-    track("diagnostic_abandoned", {
-      last_step: currentStep + 1
-    });
+  if (document.visibilityState === "hidden" && started && !abandonmentSent &&
+      !document.getElementById("result").classList.contains("active")) {
+    clearTimeout(abandonTimer);
+    abandonTimer = setTimeout(()=>{
+      if (document.visibilityState === "hidden" &&
+          !abandonmentSent &&
+          !document.getElementById("result").classList.contains("active")) {
+        abandonmentSent = true;
+        track("diagnostic_abandoned", {last_step: currentStep + 1});
+      }
+    }, 1200);
+  } else if (document.visibilityState === "visible") {
+    clearTimeout(abandonTimer);
   }
 });
 
 
-function updateFunnelSnapshot(extra={}){
-  const snap = JSON.parse(localStorage.getItem("mapa_ia_funnel_snapshot") || "{}");
-  Object.assign(snap, {
-    session_id: sourceData.session_id,
-    last_step: currentStep + 1,
-    last_topic: stepTopics[currentStep],
-    updated_at: new Date().toISOString(),
-    ...extra
-  });
-  localStorage.setItem("mapa_ia_funnel_snapshot", JSON.stringify(snap));
-}
 
 document.querySelector('a[href="#diagnostico"]').addEventListener("click",()=>track("cta_hero"));
 </script>
