@@ -481,7 +481,8 @@ input:focus,textarea:focus,select:focus{border-color:#9eacba;box-shadow:0 0 0 4p
               <a id="agentCta" class="btn-secondary" href="#" target="_self" rel="noopener">Quero saber mais — falar com o agente ↗</a>
               <a id="whatsappCta" class="btn-secondary" href="#" target="_blank" rel="noopener">Quero fazer a aula ↗</a>
             </div>
-            <div class="small" style="margin-top:10px">Depois de baixar o PDF, você segue automaticamente para o agente, que tira dúvidas e ajuda a escolher entre saber mais ou avançar para a aula.</div>
+            <div class="small" style="margin-top:10px">Depois de baixar o PDF, você escolhe o próximo passo: falar com o agente para tirar dúvidas ou ir diretamente para o WhatsApp e falar comigo.</div>
+            <div class="small" id="pdfStatus" style="margin-top:8px;display:none;font-weight:800"></div>
           </div>
         </div>
       </div>
@@ -714,7 +715,7 @@ async function submitLead(){
   const agentCta=document.getElementById("agentCta");
   if(agentCta){
     agentCta.href=CONFIG.WEBHOOK_URL+"?app=agente&sid="+encodeURIComponent(sessionId);
-    agentCta.onclick=function(){ track("whatsapp_click",{channel:"agent",objective:result.data?.q13}); };
+    agentCta.onclick=function(){ track("agent_click",{channel:"agent",objective:result.data?.q13}); };
   }
   const wa=document.getElementById("whatsappCta");
   if(wa){
@@ -959,6 +960,9 @@ async function finishQuiz(){
 }
 
 async function downloadPDF(){
+  if(window.__pdfBusy) return;
+  window.__pdfBusy=true;
+  var status=document.getElementById("pdfStatus"); if(status) status.style.display="none";
   showProcessing("Gerando seu PDF…","Seu relatório está sendo montado. Aguarde só um instante.","1/4 · Preparando o documento",10,"Iniciando a montagem do arquivo PDF.");
   await nextFrame();
   try{
@@ -1021,16 +1025,18 @@ async function downloadPDF(){
     y+=10; addText("Este relatório é uma ferramenta de orientação, não uma promessa de emprego ou resultado.",M+16,y,9,{color:gray,maxW:W-2*M-32});
     doc.setTextColor(120,130,145);doc.setFontSize(8);doc.text("MAPA IA 40+ · Saquarema/RJ",M,815);
     doc.save(`Mapa-IA-40+-${name.replace(/[^a-z0-9]+/gi,"-")}.pdf`);
-    updateProcessing("PDF pronto.","Seu mapa foi gerado com sucesso. Agora vamos continuar pelo agente.","Concluído",100,"Abrindo o atendimento em instantes.");
+    updateProcessing("PDF pronto.","Seu mapa foi gerado com sucesso. Agora você escolhe o próximo passo.","Concluído",100,"Você pode falar com o agente ou ir direto para o WhatsApp.");
     track("pdf_downloaded",{name});
-    const agentUrl=CONFIG.WEBHOOK_URL+"?app=agente&sid="+encodeURIComponent(sessionId);
-    setTimeout(function(){ hideProcessing(); window.location.href=agentUrl; }, 500);
+    setTimeout(function(){ hideProcessing(); }, 700);
+    var status=document.getElementById("pdfStatus");
+    if(status){ status.textContent="PDF pronto. Escolha seu próximo passo abaixo."; status.style.color="#1f7c56"; status.style.display="block"; }
+    window.__pdfBusy=false;
   }catch(err){
     track("pdf_download_error",{message:String(err)});
     hideProcessing();
-    window.print();
-    const agentUrl=CONFIG.WEBHOOK_URL+"?app=agente&sid="+encodeURIComponent(sessionId);
-    setTimeout(function(){ window.location.href=agentUrl; }, 1200);
+    var status=document.getElementById("pdfStatus");
+    if(status){ status.textContent="Não foi possível gerar o PDF agora. Tente novamente."; status.style.color="#b33a3a"; status.style.display="block"; }
+    window.__pdfBusy=false;
   }
 }
 
