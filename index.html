@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Mapa IA 40+: auto-diagnóstico gratuito para entender seu momento tecnológico e descobrir próximos passos.">
-<title>Mapa IA 40+ | Seu ponto de partida tecnológico</title>
+<title>Mapa IA 40+ | Auto-diagnóstico e funil</title>
 <style>
 :root{
   --navy:#071a33; --navy2:#0d2a4d; --gold:#d6a62b; --gold2:#f3c64e;
@@ -57,8 +57,8 @@ a{color:inherit}
 .options{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .option{border:1px solid var(--line);border-radius:14px;padding:16px;background:#fff;cursor:pointer;transition:.15s}
 .option:hover{border-color:#b8c3d0;background:#fbfcfd}
-.option.selected{border:2px solid var(--gold);background:#fffaf0}
-.option input{display:none}
+.option.selected{border:2px solid var(--gold);background:#fffaf0;box-shadow:0 0 0 3px rgba(214,166,43,.14);transform:translateY(-1px)}
+.option input{display:none}.option:has(input:focus-visible){outline:3px solid rgba(214,166,43,.28);outline-offset:2px}
 .opt-title{font-weight:800}
 .opt-desc{font-size:13px;color:var(--muted);margin-top:3px}
 .field{margin-top:16px}
@@ -568,6 +568,23 @@ function showStep(i){
   window.scrollTo({top:document.getElementById("quizShell").offsetTop-20,behavior:"smooth"});
   
 }
+
+
+document.addEventListener("change", function(e) {
+  if (!e.target.matches('input[type="radio"]')) return;
+
+  const group = e.target.name;
+  document.querySelectorAll('input[name="' + group + '"]').forEach(function(radio) {
+    const card = radio.closest(".option");
+    if (card) card.classList.remove("selected");
+  });
+
+  const selectedCard = e.target.closest(".option");
+  if (selectedCard) selectedCard.classList.add("selected");
+
+  // Importante: nenhuma linha é criada no funil neste momento.
+  // O avanço só é registrado quando o usuário clica em "Continuar".
+});
 
 function nextStep(){
   const step = steps[currentStep];
