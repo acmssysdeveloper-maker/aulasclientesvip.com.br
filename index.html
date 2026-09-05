@@ -127,7 +127,7 @@ input:focus,textarea:focus,select:focus{border-color:#9eacba;box-shadow:0 0 0 4p
  .stats{grid-template-columns:1fr 1fr}
 }
 <style>
-.processing-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(7,26,51,.54);backdrop-filter:blur(3px);z-index:9999;padding:24px}.processing-overlay.show{display:flex}.processing-card{width:min(440px,100%);background:#fff;border-radius:18px;padding:24px;box-shadow:0 22px 70px rgba(0,0,0,.2);text-align:center}.processing-card .spinner{width:42px;height:42px;border:4px solid #e8edf2;border-top-color:#d6a62b;border-radius:50%;animation:spin .9s linear infinite;margin:0 auto 14px}.processing-card h3{margin:0 0 8px;color:#071a33;font-size:18px}.processing-card p{margin:0;color:#66758a;font-size:12px;line-height:1.55}.processing-stage{font-weight:800;color:#9a7311;margin-top:9px;font-size:11px}@keyframes spin{to{transform:rotate(360deg)}}
+.processing-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(7,26,51,.54);backdrop-filter:blur(3px);z-index:9999;padding:24px}.processing-overlay.show{display:flex}.processing-card{width:min(440px,100%);background:#fff;border-radius:18px;padding:24px;box-shadow:0 22px 70px rgba(0,0,0,.2);text-align:center}.processing-card .spinner{width:42px;height:42px;border:4px solid #e8edf2;border-top-color:#d6a62b;border-radius:50%;animation:spin .9s linear infinite;margin:0 auto 14px}.processing-card h3{margin:0 0 8px;color:#071a33;font-size:18px}.processing-card p{margin:0;color:#66758a;font-size:12px;line-height:1.55}.processing-stage{font-weight:800;color:#9a7311;margin-top:9px;font-size:11px}.processing-progress{height:6px;background:#e8edf2;border-radius:999px;overflow:hidden;margin:14px auto 8px;max-width:280px}.processing-bar{height:100%;width:10%;background:#d6a62b;border-radius:999px;transition:width .25s ease}.processing-hint{font-size:10px;color:#8a96a5;margin-top:6px}@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </style>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
@@ -491,11 +491,13 @@ input:focus,textarea:focus,select:focus{border-color:#9eacba;box-shadow:0 0 0 4p
 
 
 <div id="processingOverlay" class="processing-overlay" aria-hidden="true">
-  <div class="processing-card">
+  <div class="processing-card" role="status" aria-live="polite">
     <div class="spinner"></div>
     <h3 id="processingTitle">Processando…</h3>
     <p id="processingText">Aguarde um instante.</p>
     <div id="processingStage" class="processing-stage">Preparando</div>
+    <div class="processing-progress" aria-hidden="true"><div id="processingBar" class="processing-bar"></div></div>
+    <div id="processingHint" class="processing-hint">Não feche esta tela enquanto concluímos esta etapa.</div>
   </div>
 </div>
 
@@ -633,13 +635,17 @@ async function submitDirectLesson(){
   let popup=null;
   try{
     popup=window.open("about:blank","_blank");
-    await fetch(CONFIG.WEBHOOK_URL,{method:"POST",body:new URLSearchParams({payload:JSON.stringify(payload)}),mode:"no-cors",keepalive:true});
+    // Não espere o CRM responder para liberar o usuário.
+    // O WhatsApp precisa abrir imediatamente; o registro segue em paralelo.
+    try{
+      fetch(CONFIG.WEBHOOK_URL,{method:"POST",body:new URLSearchParams({payload:JSON.stringify(payload)}),mode:"no-cors",keepalive:true}).catch(function(){});
+    }catch(_){ }
     localStorage.setItem("mapa_ia_direct_lesson",JSON.stringify(payload));
     track("direct_lesson_submitted",{name,email,phone});
     closeDirectLesson();
     // O cadastro é salvo no CRM, mas o navegador NÃO passa pelo /exec?action=whatsapp.
     // Esse endpoint intermediário apresentou HTTP 400 em testes. O destino final
-    // é aberto diretamente no WhatsApp.
+    // é aberto diretamente no WhatsApp, sem esperar a gravação do CRM.
     const msg=encodeURIComponent(`Olá! Sou ${name}. Acabei de me cadastrar para fazer a aula do Mapa IA 40+ e quero dar continuidade.`);
     const whatsappDirect=CONFIG.WHATSAPP_URL + (CONFIG.WHATSAPP_URL.includes("?") ? "&text=" : "?text=") + msg;
     if(popup && !popup.closed) popup.location.href=whatsappDirect; else window.location.assign(whatsappDirect);
@@ -741,17 +747,27 @@ function levelFrom(score){
   return ["Criador em evolução","Você demonstra boa autonomia e pode avançar para criação, automação e soluções mais complexas."];
 }
 
-function showProcessing(title,text,stage){
+function setProcessingProgress(percent, hint){
+  const bar=document.getElementById("processingBar");
+  if(bar) bar.style.width=Math.max(0,Math.min(100,Number(percent)||0))+"%";
+  if(hint!==undefined){
+    const h=document.getElementById("processingHint");
+    if(h) h.textContent=hint;
+  }
+}
+function showProcessing(title,text,stage,percent,hint){
   const o=document.getElementById("processingOverlay");
   document.getElementById("processingTitle").textContent=title;
   document.getElementById("processingText").textContent=text;
   document.getElementById("processingStage").textContent=stage;
   o.classList.add("show");o.setAttribute("aria-hidden","false");
+  setProcessingProgress(percent==null?10:percent,hint||"Não feche esta tela enquanto concluímos esta etapa.");
 }
-function updateProcessing(title,text,stage){
+function updateProcessing(title,text,stage,percent,hint){
   document.getElementById("processingTitle").textContent=title;
   document.getElementById("processingText").textContent=text;
   document.getElementById("processingStage").textContent=stage;
+  setProcessingProgress(percent,hint);
 }
 function hideProcessing(){
   const o=document.getElementById("processingOverlay");o.classList.remove("show");o.setAttribute("aria-hidden","true");
@@ -759,12 +775,20 @@ function hideProcessing(){
 function nextFrame(){return new Promise(function(resolve){requestAnimationFrame(function(){requestAnimationFrame(resolve);});});}
 
 async function finishQuiz(){
-  showProcessing("Lendo suas respostas…","Estou cruzando suas respostas e organizando seu mapa personalizado.","Leitura e análise");
+  showProcessing("Preparando seu mapa…","Recebi suas respostas. Agora vou calcular e organizar seu diagnóstico.","1/4 · Validando respostas",10,"Conferindo se todas as respostas necessárias foram recebidas.");
   await nextFrame();
   const step=steps[currentStep];
   const checked=step.querySelector('input[type="radio"]:checked');
-  if(!checked){document.getElementById("e14").style.display="block";return;}
+  if(!checked){
+    document.getElementById("e14").style.display="block";
+    hideProcessing();
+    return;
+  }
+
   const data=collectAnswers();
+  updateProcessing("Calculando seu mapa…","Estou transformando suas respostas em indicadores por dimensão.","2/4 · Calculando dimensões",35,"Calculando os indicadores do seu diagnóstico.");
+  await nextFrame();
+
   const all = Object.values(data.dims).flat();
   const total=norm(all);
   const scores={
@@ -778,6 +802,10 @@ async function finishQuiz(){
     "Pensamento computacional": norm(data.dims.computational),
     "Intenção de evolução": norm(data.dims.intent)
   };
+
+  updateProcessing("Interpretando seu resultado…","Agora estou identificando seus pontos fortes e o principal espaço de desenvolvimento.","3/4 · Interpretando resultado",60,"Comparando as dimensões e preparando a leitura do seu perfil.");
+  await nextFrame();
+
   const entries=Object.entries(scores).filter(([,v])=>v>0);
   entries.sort((a,b)=>b[1]-a[1]);
   const best=entries[0]?.[0]||"Aprendizagem";
@@ -827,12 +855,8 @@ async function finishQuiz(){
   };
   document.getElementById("goalQuote").textContent = goalMap[data.q13] || "Seu objetivo principal foi registrado para orientar o próximo passo.";
   const blockerMap={
-    nao_sei:"Não saber por onde começar.",
-    tempo:"Falta de tempo.",
-    curso:"Já ter feito cursos, mas não ter conseguido transformar conteúdo em prática.",
-    medo:"Medo de não conseguir ou acompanhar.",
-    excesso:"Excesso de ferramentas e pouca direção.",
-    financeiro:"Questão financeira neste momento."
+    nao_sei:"Não saber por onde começar.", tempo:"Falta de tempo.", curso:"Já ter feito cursos, mas não ter conseguido transformar conteúdo em prática.",
+    medo:"Medo de não conseguir ou acompanhar.", excesso:"Excesso de ferramentas e pouca direção.", financeiro:"Questão financeira neste momento."
   };
   document.getElementById("blockerText").textContent = blockerMap[data.q14] || "Ainda não informado.";
   if(data.q14text){ document.getElementById("blockerText").textContent += ` ${data.q14text}`; }
@@ -842,6 +866,9 @@ async function finishQuiz(){
   const leadPriority = Math.round((intentScore*0.6)+(budgetScore/6*100*0.4));
   localStorage.setItem("mapa_ia_result",JSON.stringify({data,scores,total,todayLevel,todayLevelDesc:todayDesc,best,low,budgetScore,leadPriority,nextLevel,nextDesc,futureLevel,futureDesc}));
   track("diagnostic_completed",{total_score:total,scores,best_dimension:best,growth_dimension:low,objective:data.q13,age:data.age,blocker:data.q14,budget_band:data.q15,lead_priority:leadPriority});
+
+  updateProcessing("Finalizando seu mapa…","Seu diagnóstico está pronto. Vou abrir o resultado agora.","4/4 · Finalizando apresentação",90,"Organizando a tela de resultado.");
+  await nextFrame();
   document.getElementById("quizForm").classList.add("hidden");
   document.querySelector(".quiz-head").classList.add("hidden");
   document.getElementById("result").classList.add("active");
@@ -850,68 +877,8 @@ async function finishQuiz(){
   hideProcessing();
 }
 
-async function submitLead(){
-  showProcessing("Liberando seu relatório…","Seu cadastro foi recebido. Estou preparando o acesso ao mapa completo.","Entrega do relatório");
-  await nextFrame();
-  const name=document.getElementById("name").value.trim();
-  const email=document.getElementById("email").value.trim();
-  const phone=document.getElementById("phone").value.trim();
-  const consent=document.getElementById("consent").checked;
-  const err=document.getElementById("leadError");
-  err.style.display="none";
-  if(!name || !email || !phone || !consent){
-    hideProcessing();
-    err.textContent="Preencha nome, e-mail, WhatsApp e autorize o contato para receber o relatório.";
-    err.style.display="block"; return;
-  }
-  const result=JSON.parse(localStorage.getItem("mapa_ia_result")||"{}");
-  const lead={
-    event:"lead_submitted",
-    lead_payload_version:2,
-    ts:new Date().toISOString(), ...sourceData,
-    name,email,phone,consent:true,
-
-    // Contrato canônico do diagnóstico:
-    // q13 = objetivo | q14 = obstáculo | q14text = detalhe | q15 = investimento
-    objective: result.data?.q13 || "",
-    blocker: result.data?.q14 || "",
-    blocker_detail: result.data?.q14text || "",
-    budget_band: result.data?.q15 || "",
-
-    ...result
-  };
-  // Envia o lead completo uma única vez para a aba Leads.
-  if(CONFIG.WEBHOOK_URL){
-    try{
-      await fetch(CONFIG.WEBHOOK_URL,{method:"POST",body:new URLSearchParams({payload: JSON.stringify(lead)}),mode:"no-cors",keepalive:true});
-    }catch(e){}
-  }
-  // Registra o evento de captura separadamente, sem duplicar a linha na aba Leads.
-  track("lead_captured",{name,email,phone,objective:result.data?.q13,blocker:result.data?.q14,budget_band:result.data?.q15,total_score:result.total,lead_priority:result.leadPriority});
-  document.getElementById("fullReport").classList.remove("hidden");
-  document.getElementById("nextStepCard").classList.remove("hidden");
-  document.getElementById("leadCard").classList.add("hidden");
-  const wa=document.getElementById("whatsappCta");
-  const agent=document.getElementById("agentCta");
-  const agentUrl=CONFIG.WEBHOOK_URL+"?app=agente&sid="+encodeURIComponent(sessionId);
-  if(agent){ agent.href=agentUrl; agent.onclick=()=>track("agent_open",{stage:"result_after_lead"}); }
-  if(CONFIG.WHATSAPP_URL){
-    const msg=encodeURIComponent(`Olá! Fiz o Mapa IA 40+ e meu resultado apontou ${result.low || "um espaço de desenvolvimento"} como principal oportunidade. Quero fazer a aula.`);
-    wa.href=CONFIG.WHATSAPP_URL + (CONFIG.WHATSAPP_URL.includes("?") ? "&text=" : "?text=") + msg;
-    wa.onclick=()=>track("whatsapp_click",{objective:result.data?.q13});
-  }
-  track("report_released",{name,email,phone,total_score:result.total,budget_band:result.data?.q15});
-  err.textContent="Cadastro confirmado. Seu mapa completo foi liberado abaixo.";
-  err.style.color="#1f7c56"; err.style.display="block";
-  document.querySelector(".lead .cta").textContent="Cadastro recebido ✓";
-  document.querySelector(".lead .cta").disabled=true;
-  document.querySelector(".lead .cta").style.opacity=".8";
-  hideProcessing();
-}
-
 async function downloadPDF(){
-  track("pdf_downloaded", {report:true});
-  showProcessing("Gerando seu PDF…","Seu relatório está sendo montado. Aguarde só um instante.","Preparação do PDF");
+  showProcessing("Gerando seu PDF…","Seu relatório está sendo montado. Aguarde só um instante.","1/4 · Preparando o documento",10,"Iniciando a montagem do arquivo PDF.");
   await nextFrame();
   try{
     const result=JSON.parse(localStorage.getItem("mapa_ia_result")||"{}");
@@ -929,6 +896,9 @@ async function downloadPDF(){
       const lines=doc.splitTextToSize(String(txt),opts.maxW||W-2*M);
       doc.text(lines,x,yy); return yy+lines.length*(size+4);
     };
+
+    updateProcessing("Gerando seu PDF…","Criando a capa e identificando seu perfil.","2/4 · Montando capa e perfil",35,"Incluindo seu nome, perfil e índice.");
+    await nextFrame();
     doc.setFillColor(...navy); doc.rect(0,0,W,115,"F");
     doc.setTextColor(255,255,255); doc.setFont("helvetica","bold"); doc.setFontSize(25); doc.text("MAPA IA 40+",M,48);
     doc.setFont("helvetica","normal"); doc.setFontSize(12); doc.text("Seu ponto de partida tecnológico",M,72);
@@ -939,6 +909,9 @@ async function downloadPDF(){
     y=addText(`Índice de preparação tecnológica: ${result.total||0}/100`,M,y+18,13,{bold:true});
     y=addText(result.todayLevelDesc||"",M,y+10,11,{color:gray});
     y+=15;
+
+    updateProcessing("Gerando seu PDF…","Inserindo suas dimensões e resultados.","3/4 · Inserindo resultados",60,"Organizando os indicadores do seu diagnóstico.");
+    await nextFrame();
     doc.setFont("helvetica","bold");doc.setFontSize(14);doc.setTextColor(...navy);doc.text("Suas dimensões",M,y); y+=18;
     Object.entries(scores).forEach(([label,val])=>{
       doc.setFont("helvetica","normal");doc.setFontSize(10);doc.setTextColor(17,32,51);doc.text(label,M,y);
@@ -957,6 +930,9 @@ async function downloadPDF(){
     y=addText("Seu objetivo: "+(document.getElementById("goalQuote")?.innerText||""),M,y,11,{maxW:510});
     y=addText("Seu principal obstáculo: "+(document.getElementById("blockerText")?.innerText||""),M,y+4,11,{maxW:510});
     if(y>710){doc.addPage();y=50;}
+
+    updateProcessing("Gerando seu PDF…","Quase pronto. Finalizando orientações e salvando o arquivo.","4/4 · Finalizando PDF",85,"Concluindo o documento e preparando o download.");
+    await nextFrame();
     y+=18;doc.setFillColor(247,245,239);doc.roundedRect(M,y,W-2*M,110,10,10,"F");
     y+=24;doc.setFont("helvetica","bold");doc.setFontSize(14);doc.setTextColor(...navy);doc.text("Como transformar o mapa em prática",M+16,y);y+=20;
     y=addText("Aulas individuais, 2 vezes por semana, 90 minutos, 100% remotas, diretamente com o professor e construídas em quatro mãos.",M+16,y,10,{maxW:W-2*M-32});
@@ -964,16 +940,16 @@ async function downloadPDF(){
     y+=10; addText("Este relatório é uma ferramenta de orientação, não uma promessa de emprego ou resultado.",M+16,y,9,{color:gray,maxW:W-2*M-32});
     doc.setTextColor(120,130,145);doc.setFontSize(8);doc.text("MAPA IA 40+ · Saquarema/RJ",M,815);
     doc.save(`Mapa-IA-40+-${name.replace(/[^a-z0-9]+/gi,"-")}.pdf`);
-    updateProcessing("PDF gerado.","Seu mapa foi salvo. Agora vamos continuar pelo agente para tirar dúvidas e escolher o próximo passo.","Abrindo atendimento");
+    updateProcessing("PDF pronto.","Seu mapa foi gerado com sucesso. Agora vamos continuar pelo agente.","Concluído",100,"Abrindo o atendimento em instantes.");
     track("pdf_downloaded",{name});
-    // Pós-PDF: entra automaticamente no atendimento antes do WhatsApp.
     const agentUrl=CONFIG.WEBHOOK_URL+"?app=agente&sid="+encodeURIComponent(sessionId);
-    setTimeout(function(){ hideProcessing(); window.location.href=agentUrl; }, 900);
+    setTimeout(function(){ hideProcessing(); window.location.href=agentUrl; }, 500);
   }catch(err){
     track("pdf_download_error",{message:String(err)});
+    hideProcessing();
     window.print();
     const agentUrl=CONFIG.WEBHOOK_URL+"?app=agente&sid="+encodeURIComponent(sessionId);
-    setTimeout(function(){ hideProcessing(); window.location.href=agentUrl; }, 1200);
+    setTimeout(function(){ window.location.href=agentUrl; }, 1200);
   }
 }
 
