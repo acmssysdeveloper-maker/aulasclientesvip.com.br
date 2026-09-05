@@ -98,9 +98,10 @@ input:focus,textarea:focus,select:focus{border-color:#9eacba;box-shadow:0 0 0 4p
 .direct-lesson{background:#fff9df;border:1px solid #edd88b;border-radius:16px;padding:18px;margin-top:20px;display:flex;align-items:center;justify-content:space-between;gap:18px;box-shadow:0 8px 24px rgba(7,26,51,.05)}
 .direct-lesson b{display:block;font-size:15px;color:var(--navy)}
 .direct-lesson span{display:block;color:var(--muted);font-size:12px;margin-top:4px;line-height:1.4}
-.direct-btn{background:var(--gold2);color:var(--navy);border:0;border-radius:11px;padding:13px 17px;font-weight:900;cursor:pointer;white-space:nowrap}
+.direct-btn{display:inline-flex;align-items:center;justify-content:center;background:var(--gold2);color:var(--navy);border:0;border-radius:11px;padding:13px 17px;font-weight:900;cursor:pointer;pointer-events:auto;white-space:nowrap;text-decoration:none;box-shadow:0 6px 16px rgba(0,0,0,.08);position:relative;z-index:5} .direct-btn:hover{filter:brightness(.98);transform:translateY(-1px)}
 .direct-modal{position:fixed;inset:0;background:rgba(7,26,51,.58);display:none;align-items:center;justify-content:center;padding:18px;z-index:90}
 .direct-modal.open{display:flex}
+.direct-modal:target{display:flex}
 .direct-card{width:min(520px,100%);background:#fff;border-radius:18px;padding:22px;box-shadow:0 30px 80px rgba(0,0,0,.25)}
 .direct-card h3{margin:0 0 7px;font-size:23px;color:var(--navy)}
 .direct-card p{margin:0;color:var(--muted);font-size:12px;line-height:1.5}
@@ -144,7 +145,7 @@ input:focus,textarea:focus,select:focus{border-color:#9eacba;box-shadow:0 0 0 4p
     <div class="micro">Leva poucos minutos. Você recebe seu mapa na própria página.</div>
     <div class="direct-lesson">
       <div><b>Já decidiu que quer fazer a aula?</b><span>Você não precisa responder o diagnóstico. Cadastre seus dados e vá direto para o próximo passo.</span></div>
-      <button class="direct-btn" type="button" onclick="openDirectLesson()">🔥 Quero fazer a aula agora</button>
+      <a class="direct-btn" href="#directLessonModal" role="button" aria-controls="directLessonModal" onclick="openDirectLesson(); return false;">🔥 Quero fazer a aula agora</a>
     </div>
   </div>
 </section>
@@ -601,6 +602,7 @@ function openDirectLesson(){
 function closeDirectLesson(){
   const modal=document.getElementById("directLessonModal");
   modal.classList.remove("open");modal.setAttribute("aria-hidden","true");
+  if(location.hash==="#directLessonModal"){ history.replaceState(null,"",location.pathname+location.search); }
 }
 async function submitDirectLesson(){
   const name=document.getElementById("directName").value.trim();
@@ -627,6 +629,8 @@ async function submitDirectLesson(){
     err.textContent="Não conseguimos preparar o encaminhamento agora. Tente novamente.";err.style.display="block";
   }
 }
+
+document.addEventListener("click",function(e){var a=e.target.closest && e.target.closest('a[href="#directLessonModal"]');if(a){setTimeout(function(){try{track("direct_lesson_view");document.getElementById("directName")&&document.getElementById("directName").focus();}catch(err){}},30);}});
 
 track("landing_view");
 
