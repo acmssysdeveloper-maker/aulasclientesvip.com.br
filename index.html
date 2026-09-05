@@ -23,8 +23,9 @@ a{color:inherit}
  linear-gradient(100deg,rgba(7,26,51,.96) 0%,rgba(7,26,51,.91) 54%,rgba(7,26,51,.72) 100%),
  radial-gradient(circle at 90% 20%,rgba(214,166,43,.28),transparent 28%);
  color:#fff;padding:76px 0 62px;position:relative;overflow:hidden}
-.hero:after{content:"";position:absolute;right:-120px;bottom:-180px;width:480px;height:480px;border:1px solid rgba(243,198,78,.22);border-radius:50%;box-shadow:0 0 0 70px rgba(243,198,78,.03),0 0 0 140px rgba(243,198,78,.02)}
+.hero:after{pointer-events:none;content:"";position:absolute;right:-120px;bottom:-180px;width:480px;height:480px;border:1px solid rgba(243,198,78,.22);border-radius:50%;box-shadow:0 0 0 70px rgba(243,198,78,.03),0 0 0 140px rgba(243,198,78,.02)}
 .kicker{display:inline-flex;align-items:center;gap:8px;color:var(--gold2);font-weight:800;text-transform:uppercase;letter-spacing:.12em;font-size:13px;margin-bottom:18px}
+.hero>.container{position:relative;z-index:1}
 .hero h1{font-size:clamp(38px,6vw,72px);line-height:.98;max-width:850px;margin:0 0 22px;letter-spacing:-.04em}
 .hero h1 span{color:var(--gold2)}
 .hero p{font-size:clamp(18px,2.1vw,23px);max-width:770px;color:#e7edf5;margin:0 0 30px}
@@ -98,7 +99,7 @@ input:focus,textarea:focus,select:focus{border-color:#9eacba;box-shadow:0 0 0 4p
 .direct-lesson{background:#fff9df;border:1px solid #edd88b;border-radius:16px;padding:18px;margin-top:20px;display:flex;align-items:center;justify-content:space-between;gap:18px;box-shadow:0 8px 24px rgba(7,26,51,.05)}
 .direct-lesson b{display:block;font-size:15px;color:var(--navy)}
 .direct-lesson span{display:block;color:var(--muted);font-size:12px;margin-top:4px;line-height:1.4}
-.direct-btn{display:inline-flex;align-items:center;justify-content:center;background:var(--gold2);color:var(--navy);border:0;border-radius:11px;padding:13px 17px;font-weight:900;cursor:pointer;pointer-events:auto;white-space:nowrap;text-decoration:none;box-shadow:0 6px 16px rgba(0,0,0,.08);position:relative;z-index:5} .direct-btn:hover{filter:brightness(.98);transform:translateY(-1px)}
+.direct-btn{position:relative;z-index:2;display:inline-flex;align-items:center;justify-content:center;background:var(--gold2);color:var(--navy);border:0;border-radius:11px;padding:13px 17px;font-weight:900;cursor:pointer;white-space:nowrap;text-decoration:none;box-shadow:0 6px 16px rgba(0,0,0,.08)}
 .direct-modal{position:fixed;inset:0;background:rgba(7,26,51,.58);display:none;align-items:center;justify-content:center;padding:18px;z-index:90}
 .direct-modal.open{display:flex}
 .direct-modal:target{display:flex}
@@ -145,7 +146,7 @@ input:focus,textarea:focus,select:focus{border-color:#9eacba;box-shadow:0 0 0 4p
     <div class="micro">Leva poucos minutos. Você recebe seu mapa na própria página.</div>
     <div class="direct-lesson">
       <div><b>Já decidiu que quer fazer a aula?</b><span>Você não precisa responder o diagnóstico. Cadastre seus dados e vá direto para o próximo passo.</span></div>
-      <a class="direct-btn" href="#directLessonModal" role="button" aria-controls="directLessonModal" onclick="openDirectLesson(); return false;">🔥 Quero fazer a aula agora</a>
+      <button class="direct-btn" type="button" onclick="openDirectLesson()">🔥 Quero fazer a aula agora</button>
     </div>
   </div>
 </section>
@@ -474,9 +475,10 @@ input:focus,textarea:focus,select:focus{border-color:#9eacba;box-shadow:0 0 0 4p
             <div class="notice" style="margin-top:16px"><b>Seu mapa foi calculado a partir das suas respostas.</b> Ele é um instrumento de orientação e autoconhecimento, não uma promessa de emprego ou de resultado profissional.</div>
             <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:18px">
               <button class="cta" type="button" onclick="downloadPDF()">Baixar meu mapa em PDF ↓</button>
-              <a id="whatsappCta" class="btn-secondary hidden" href="#" target="_blank" rel="noopener">Quero conversar sobre minha primeira aula ↗</a>
+              <a id="agentCta" class="btn-secondary" href="#" target="_self" rel="noopener">Quero saber mais — falar com o agente ↗</a>
+              <a id="whatsappCta" class="btn-secondary" href="#" target="_blank" rel="noopener">Quero fazer a aula ↗</a>
             </div>
-            <div class="small" style="margin-top:10px">O botão de WhatsApp aparece quando você configurar o seu link no código.</div>
+            <div class="small" style="margin-top:10px">Depois de baixar o PDF, você segue automaticamente para o agente, que tira dúvidas e ajuda a escolher entre saber mais ou avançar para a aula.</div>
           </div>
         </div>
       </div>
@@ -521,7 +523,7 @@ const CONFIG = {
   WEBHOOK_URL: "https://script.google.com/macros/s/AKfycbwsgmYbOxSz_i3QQCPwDBe1tsN8YPvZEuTcH8PuTSdYtfvvwJfCR-qR8AOGf0-lmf6jOw/exec",
   // Cole aqui, quando quiser, o link oficial do seu WhatsApp, por exemplo: https://wa.me/55XXXXXXXXXXX
   // O telefone não aparece em lugar nenhum enquanto este campo estiver vazio.
-  WHATSAPP_URL: "",
+  WHATSAPP_URL: "https://wa.me/5522999680509",
   BRAND: "Mapa IA 40+",
   REMOTE_CLASS_TEXT: "Aulas individuais, 2 vezes por semana, 90 minutos, 100% remotas, construídas em quatro mãos."
 };
@@ -630,7 +632,7 @@ async function submitDirectLesson(){
   }
 }
 
-document.addEventListener("click",function(e){var a=e.target.closest && e.target.closest('a[href="#directLessonModal"]');if(a){setTimeout(function(){try{track("direct_lesson_view");document.getElementById("directName")&&document.getElementById("directName").focus();}catch(err){}},30);}});
+
 
 track("landing_view");
 
@@ -849,11 +851,13 @@ async function submitLead(){
   document.getElementById("fullReport").classList.remove("hidden");
   document.getElementById("nextStepCard").classList.remove("hidden");
   const wa=document.getElementById("whatsappCta");
+  const agent=document.getElementById("agentCta");
+  const agentUrl=CONFIG.WEBHOOK_URL+"?app=agente&sid="+encodeURIComponent(sessionId);
+  if(agent){ agent.href=agentUrl; agent.onclick=()=>track("agent_open",{stage:"result_after_lead"}); }
   if(CONFIG.WHATSAPP_URL){
-    const msg=encodeURIComponent(`Olá! Fiz o Mapa IA 40+ e meu resultado apontou ${result.low || "um espaço de desenvolvimento"} como principal oportunidade. Gostaria de entender como funcionam as aulas individuais.`);
+    const msg=encodeURIComponent(`Olá! Fiz o Mapa IA 40+ e meu resultado apontou ${result.low || "um espaço de desenvolvimento"} como principal oportunidade. Quero fazer a aula.`);
     wa.href=CONFIG.WHATSAPP_URL + (CONFIG.WHATSAPP_URL.includes("?") ? "&text=" : "?text=") + msg;
     wa.onclick=()=>track("whatsapp_click",{objective:result.data?.q13});
-    wa.classList.remove("hidden");
   }
   track("report_released",{name,email,phone,total_score:result.total,budget_band:result.data?.q15});
   err.textContent="Pronto. Seu resultado foi liberado abaixo.";
@@ -917,9 +921,14 @@ function downloadPDF(){
     doc.setTextColor(120,130,145);doc.setFontSize(8);doc.text("MAPA IA 40+ · Saquarema/RJ",M,815);
     doc.save(`Mapa-IA-40+-${name.replace(/[^a-z0-9]+/gi,"-")}.pdf`);
     track("pdf_downloaded",{name});
+    // Pós-PDF: entra automaticamente no atendimento antes do WhatsApp.
+    const agentUrl=CONFIG.WEBHOOK_URL+"?app=agente&sid="+encodeURIComponent(sessionId);
+    setTimeout(function(){ window.location.href=agentUrl; }, 500);
   }catch(err){
     track("pdf_download_error",{message:String(err)});
     window.print();
+    const agentUrl=CONFIG.WEBHOOK_URL+"?app=agente&sid="+encodeURIComponent(sessionId);
+    setTimeout(function(){ window.location.href=agentUrl; }, 1200);
   }
 }
 
