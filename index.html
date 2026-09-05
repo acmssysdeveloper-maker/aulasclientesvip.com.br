@@ -637,8 +637,12 @@ async function submitDirectLesson(){
     localStorage.setItem("mapa_ia_direct_lesson",JSON.stringify(payload));
     track("direct_lesson_submitted",{name,email,phone});
     closeDirectLesson();
-    const bridge=CONFIG.WEBHOOK_URL+"?action=whatsapp&sid="+encodeURIComponent(sessionId);
-    if(popup && !popup.closed) popup.location.href=bridge; else window.location.href=bridge;
+    // O cadastro é salvo no CRM, mas o navegador NÃO passa pelo /exec?action=whatsapp.
+    // Esse endpoint intermediário apresentou HTTP 400 em testes. O destino final
+    // é aberto diretamente no WhatsApp.
+    const msg=encodeURIComponent(`Olá! Sou ${name}. Acabei de me cadastrar para fazer a aula do Mapa IA 40+ e quero dar continuidade.`);
+    const whatsappDirect=CONFIG.WHATSAPP_URL + (CONFIG.WHATSAPP_URL.includes("?") ? "&text=" : "?text=") + msg;
+    if(popup && !popup.closed) popup.location.href=whatsappDirect; else window.location.assign(whatsappDirect);
   }catch(e){
     if(popup && !popup.closed){try{popup.close();}catch(_){}}
     err.textContent="Não conseguimos preparar o encaminhamento agora. Tente novamente.";err.style.display="block";
