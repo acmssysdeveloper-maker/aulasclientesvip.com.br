@@ -750,9 +750,17 @@ async function submitLead(){
   const result=JSON.parse(localStorage.getItem("mapa_ia_result")||"{}");
   const lead={
     event:"lead_submitted",
-    lead_payload_version:1,
+    lead_payload_version:2,
     ts:new Date().toISOString(), ...sourceData,
     name,email,phone,consent:true,
+
+    // Contrato canônico do diagnóstico:
+    // q13 = objetivo | q14 = obstáculo | q14text = detalhe | q15 = investimento
+    objective: result.data?.q13 || "",
+    blocker: result.data?.q14 || "",
+    blocker_detail: result.data?.q14text || "",
+    budget_band: result.data?.q15 || "",
+
     ...result
   };
   // Envia o lead completo uma única vez para a aba Leads.
