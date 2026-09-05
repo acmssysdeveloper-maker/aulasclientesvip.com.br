@@ -657,6 +657,87 @@ async function submitDirectLesson(){
 
 
 
+async function submitLead(){
+  const name=document.getElementById("name").value.trim();
+  const email=document.getElementById("email").value.trim();
+  const phone=document.getElementById("phone").value.trim();
+  const consent=document.getElementById("consent").checked;
+  const err=document.getElementById("leadError");
+  const btn=document.querySelector("#leadCard .cta");
+  err.style.display="none";
+  if(!name || !email || !phone || !consent){
+    err.textContent="Preencha nome, e-mail, WhatsApp e autorize o contato para receber o relatório.";
+    err.style.color="#b33a3a"; err.style.display="block"; return;
+  }
+  if(btn && btn.disabled) return;
+
+  const result=JSON.parse(localStorage.getItem("mapa_ia_result")||"{}");
+  const lead={
+    event:"lead_submitted",
+    lead_payload_version:1,
+    ts:new Date().toISOString(), ...sourceData,
+    name,email,phone,consent:true,
+    ...result
+  };
+
+  // Confirma imediatamente o clique e não deixa o CRM bloquear a tela.
+  if(btn){
+    btn.disabled=true;
+    btn.textContent="Liberando seu relatório…";
+    btn.style.opacity=".85";
+    btn.setAttribute("aria-busy","true");
+  }
+  err.textContent="Cadastro recebido. Estamos liberando seu mapa completo agora…";
+  err.style.color="#9a7311";
+  err.style.display="block";
+
+  // Gravação do lead em segundo plano: não aguardamos a resposta do Apps Script.
+  if(CONFIG.WEBHOOK_URL){
+    try{
+      const body=new URLSearchParams({payload:JSON.stringify(lead)});
+      let sent=false;
+      if(navigator.sendBeacon){
+        try{ sent=navigator.sendBeacon(CONFIG.WEBHOOK_URL,body); }catch(e){}
+      }
+      if(!sent){
+        fetch(CONFIG.WEBHOOK_URL,{method:"POST",body,mode:"no-cors",keepalive:true}).catch(function(){});
+      }
+    }catch(e){}
+  }
+
+  // O diagnóstico já foi calculado no navegador. A liberação visual não depende do backend.
+  await nextFrame();
+  document.getElementById("fullReport").classList.remove("hidden");
+  document.getElementById("nextStepCard").classList.remove("hidden");
+
+  // Prepara desde já os próximos caminhos: agente e aula.
+  const agentCta=document.getElementById("agentCta");
+  if(agentCta){
+    agentCta.href=CONFIG.WEBHOOK_URL+"?app=agente&sid="+encodeURIComponent(sessionId);
+    agentCta.onclick=function(){ track("whatsapp_click",{channel:"agent",objective:result.data?.q13}); };
+  }
+  const wa=document.getElementById("whatsappCta");
+  if(wa){
+    const msg=encodeURIComponent(`Olá! Fiz o Mapa IA 40+ e meu resultado apontou ${result.low || "um espaço de desenvolvimento"} como principal oportunidade. Quero fazer a aula e dar continuidade.`);
+    const base=CONFIG.WHATSAPP_URL || "https://wa.me/5522999680509";
+    wa.href=base+(base.includes("?")?"&text=":"?text=")+msg;
+    wa.onclick=function(){track("whatsapp_click",{channel:"direct_lesson",objective:result.data?.q13});};
+  }
+
+  track("lead_captured",{name,email,phone,objective:result.data?.q13,blocker:result.data?.q14,budget_band:result.data?.q15,total_score:result.total,lead_priority:result.leadPriority});
+  track("report_released",{name,email,phone,total_score:result.total,budget_band:result.data?.q15});
+
+  err.textContent="Cadastro confirmado. Seu mapa completo foi liberado abaixo.";
+  err.style.color="#1f7c56";
+  if(btn){
+    btn.textContent="Relatório liberado ✓";
+    btn.style.opacity=".8";
+    btn.removeAttribute("aria-busy");
+  }
+  document.getElementById("fullReport").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+
 track("landing_view");
 
 function showStep(i){
